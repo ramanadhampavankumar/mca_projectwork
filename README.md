@@ -2,7 +2,7 @@
 “Face Recognition-Based Attendance System - Flask App - With GUI” with “Artificial Intelligence & Machine Learning”
 
 ## Table of Contents
-- [Project Work Authorization Letter](#Authorization-Letter)
+- [Project Work Authorization Letter](#Project-Work-Authorization-Letter)
 - [Project Work Abstract](#Project-Work-Abstract)
 - [Project Work Details](#Project-Work-Details)
 
