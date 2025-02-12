@@ -1,7 +1,7 @@
 ## This is my final year MCA Project Work
 “Face Recognition-Based Attendance System - Flask App - With GUI” with “Artificial Intelligence & Machine Learning”
 
-### Table of Contents
+## Table of Contents
 - [Project Work Authorization Letter](#Authorization_Letter)
 - [Project Work Abstract](#Project_Work_Abstract)
 - [Project Work Details](#Project_Work_Details)
