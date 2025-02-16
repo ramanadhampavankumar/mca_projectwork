@@ -23,6 +23,7 @@ Here's the link of the [Google Drive](https://drive.google.com/file/d/132uNy38l3
     git clone https://github.com/ramanadhampavankumar/mca_projectwork.git
     ```
 2. Creating the virtual environment:
+
    For bash
     ```
     mkvirtualenv venv --python=/usr/bin/python3.10
