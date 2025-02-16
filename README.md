@@ -31,11 +31,11 @@ Here's the link of the [Google Drive](https://drive.google.com/file/d/132uNy38l3
     ```
     python3.10 -m venv venv
     ```
-3. Install the required dependencies:
+4. Install the required dependencies:
     ```
     pip install -r requirements.txt
     ```
-4. Run the `app.py` file.
+5. Run the `app.py` file.
     ```
     python app.py
     ```
