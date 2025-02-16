@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> {% block title %}<!--title block-->{% endblock title %} - Project</title>
+    <link href="{{ url_for('static', filename='styles/index.css') }}" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>   
+                <li><a href="/">Home</a></li>
+                <li><a href="classes">Today's classes</a></li>
+                <li><a href="login">Login</a></li>
+                <li><a href="register">Register</a></li>
+            </ul>
+        </nav>
+    </header>
+{% block body %}
+<!--body block-->
+{% endblock body %}
+</body>
+
+
+</html>
