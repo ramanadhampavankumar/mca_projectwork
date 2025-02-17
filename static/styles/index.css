@@ -39,30 +39,9 @@ a{
     text-decoration: none;
 }
 
-a.button {
-    background-color: #333;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    text-decoration: none;
-    cursor: pointer;
-}
-
 button:hover {
     background-color: #444;
 }
-
-footer {
-    background-color: #333;
-    color: #fff;
-    padding: 1em;
-    text-align: center;
-    clear: both;
-}
-
-
-
 
 form {
     width: 300px;
@@ -99,16 +78,15 @@ input[type="submit"]:hover {
     background-color: #444;
 }
 
-
 table {
     margin: 0 auto;
     border-collapse: collapse;
-    }
-   th, td {
+}
+th, td {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: center;
-    }
-   th {
+}
+th {
     background-color: #f0f0f0;
-    }
+}
