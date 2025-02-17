@@ -10,26 +10,10 @@
       <input type="text" placeholder="idno" autocomplete="off">
       <label for="password">Password:</label>
       <input type="password" name="password" placeholder="Password" autocomplete="off">
-      <input type="submit" value="Login" onclick="setFormAction('login')">
+      <input type="submit" value="Login">
       <p>Don't have an account? <a href="register">Register</a></p>
     </form>
   </div>
-  
 </main>
-
-<script>
-  function setFormAction(action) {
-      var form = document.getElementById('auth-form');
-      if (action === 'login') {
-          form.action = "{{ url_for('login') }}";
-          form.method = "post";
-          form.submit();
-      } else if (action === 'register') {
-          form.action = "{{ url_for('register') }}";
-          form.method = "post";
-          form.submit();
-      }
-  }
-</script>
 
 {% endblock body %}
