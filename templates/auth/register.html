@@ -7,23 +7,24 @@
 
     <!-- Display Error Message if it exists -->
     {% if error %}
-        <div class="error-message" style="color: red; margin: 20px 0px 0px 0px;">
+        <div class="error-message">
+            <img class="gif" src="https://media.tenor.com/ND7gVsruMjMAAAAi/startled-stuart-the-minion.gif" alt="error-message" title="gif"/>
     {{ error }}
         </div>
     {% endif %}
     <!-- Register Form -->
     <form id="auth-form" action="{{ url_for('register') }}" method="post">
         <label for="username">Name:</label>
-        <input type="text" id="username" name="username" placeholder="Name" autocomplete="off" required>
+        <input type="text" id="username" name="username" placeholder="Name" autocomplete="on" required>
         
         <label for="userid">ID Number:</label>
-        <input type="text" id="userid" name="userid" placeholder="ID Number" autocomplete="off" required>
+        <input type="text" id="userid" name="userid" placeholder="ID Number" autocomplete="on" required>
         
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" placeholder="Password" autocomplete="off" required>
         
         <label for="confirm-password">Confirm Password:</label>
-        <input type="password" id="confirm-password" name="confirm-password" placeholder="confirm-password" autocomplete="off" required>
+        <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm Password" autocomplete="off" required>
 
         <input type="submit" value="Register">
     </form>

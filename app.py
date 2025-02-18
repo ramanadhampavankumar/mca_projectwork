@@ -23,8 +23,8 @@ class User(db.Model):
     Returns:
         string: Only check_password returns, else used to store user info
     """
-    userid = db.Column(db.String(10), primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
+    userid = db.Column(db.String(10), primary_key=True, unique=True, nullable=False)
+    username = db.Column(db.String(150), nullable=False)
     password_hash = db.Column(db.String(150), nullable=False)
 
     def set_password(self, password):

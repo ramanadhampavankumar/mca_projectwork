@@ -48,7 +48,6 @@ header .figure{
 nav{
     background: #333;
     width: 100%;
-    text-transform: uppercase;
     position: sticky;
     top: 0px;
     z-index: 1;
@@ -307,4 +306,12 @@ h1{
     margin-right: auto;
     margin-top: 10%;
     margin-bottom: 10%;
+}
+
+.error-message{
+color: red; 
+margin: 20px 0px 0px 0px; 
+align-items: center; 
+justify-content: center;
+text-align: center;
 }
