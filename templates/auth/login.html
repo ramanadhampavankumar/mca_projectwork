@@ -15,10 +15,10 @@
   <!-- login form -->
   <form id="auth-login" action="{{ url_for('login') }}" method="post">
     <label for="userid">ID Number:</label>
-    <input type="text" name="userid" placeholder="ID Number" autocomplete="on" required>
+    <input type="text" name="userid" placeholder="ID Number" autocomplete="username" required>
 
     <label for="password">Password:</label>
-    <input type="password" name="password" placeholder="Password" autocomplete="off" required>
+    <input type="password" name="password" placeholder="Password" autocomplete="current-password" required>
 
     <input type="submit" value="Login">
 
