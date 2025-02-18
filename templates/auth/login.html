@@ -1,35 +1,23 @@
 {% extends 'base.html' %}
-{% block title %} Login{% endblock title %} 
+{% block title %} Login{% endblock title %}
 {% block body %}
 
 <main>
   <h1>Login</h1>
   <div>
-    <form id="auth-form" action="{{ url_for('login') }}" method="post">
-      <label for="text">ID Number:</label>
-      <input type="text" placeholder="idno" autocomplete="off">
+    <!-- login form -->
+    <form id="auth-login" action="{{ url_for('login') }}" method="post">
+      <label for="userid">ID Number:</label>
+      <input type="text" name="userid" placeholder="ID Number" autocomplete="off" required>
+      
       <label for="password">Password:</label>
-      <input type="password" name="password" placeholder="Password" autocomplete="off">
-      <input type="submit" value="Login" onclick="setFormAction('login')">
-      <p>Don't have an account? <a href="register">Register</a></p>
+      <input type="password" name="password" placeholder="Password" autocomplete="off" required>
+      
+      <input type="submit" value="Login">
+      
+      <p>Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
     </form>
   </div>
-  
 </main>
-
-<script>
-  function setFormAction(action) {
-      var form = document.getElementById('auth-form');
-      if (action === 'login') {
-          form.action = "{{ url_for('login') }}";
-          form.method = "post";
-          form.submit();
-      } else if (action === 'register') {
-          form.action = "{{ url_for('register') }}";
-          form.method = "post";
-          form.submit();
-      }
-  }
-</script>
 
 {% endblock body %}

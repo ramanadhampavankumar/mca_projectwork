@@ -1,20 +1,31 @@
 {% extends 'base.html' %}
-{% block title %} Register{% endblock title %} 
+{% block title %} Register {% endblock title %} 
 {% block body %}
 
 <main>
     <h1>Register</h1>
-    <form action="/register">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name">
-        <label for="name">ID Number:</label>
-        <input type="text" id="idno" name="idno">
+
+    <!-- Display Error Message if it exists -->
+    {% if error %}
+        <div class="error-message" style="color: red; margin: 20px 0px 0px 0px;">
+    {{ error }}
+        </div>
+    {% endif %}
+    <!-- Register Form -->
+    <form id="auth-form" action="{{ url_for('register') }}" method="post">
+        <label for="username">Name:</label>
+        <input type="text" id="username" name="username" placeholder="Name" autocomplete="off" required>
+        
+        <label for="userid">ID Number:</label>
+        <input type="text" id="userid" name="userid" placeholder="ID Number" autocomplete="off" required>
+        
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password">
+        <input type="password" id="password" name="password" placeholder="Password" autocomplete="off" required>
+        
         <label for="confirm-password">Confirm Password:</label>
-        <input type="password" id="confirm-password" name="confirm-password">
+        <input type="password" id="confirm-password" name="confirm-password" placeholder="confirm-password" autocomplete="off" required>
+
         <input type="submit" value="Register">
     </form>
 </main>
-
 {% endblock body %}
