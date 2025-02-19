@@ -14,6 +14,9 @@
     {% endif %}
     <!-- Register Form -->
     <form id="auth-form" action="{{ url_for('register') }}" method="post">
+        <!--<p>Role:</p><br/>
+        <input type="radio" id="teacher" name="role" value="teacher" autocomplete="name"> Teacher
+        <input type="radio" id="student" name="role" value="student" autocomplete="name" > Student<br/><br/>-->
         <label for="username">Name:</label>
         <input type="text" id="username" name="username" placeholder="Name" autocomplete="name" required>
         

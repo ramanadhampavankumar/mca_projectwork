@@ -67,7 +67,7 @@ def login():
         user = User.query.filter_by(userid=userid).first()
         if user and user.check_password(password):
             session['username'] = user.username
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('admin_dashboard'))
         else:
             return render_template('auth/login.html', error='Invalid username or password.')
     return render_template('auth/login.html')
@@ -97,25 +97,42 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
-        # Set session and redirect to the dashboard
+        # Set session and redirect to the dashboards
         session['username'] = username
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('admin_dashboard'))
     
     return render_template('auth/register.html')
 
 #########################################################################################################################
-#route for dashboard
-@app.route('/dashboard')
-def dashboard():
+#route for admin dashboard
+@app.route('/admin_dashboard')
+def admin_dashboard():
     if 'username' in session:
-        return render_template('auth/dashboards/dashboard.html', username=session['username'])
-    return redirect(url_for('index'))
+        return render_template('auth/dashboards/admin_dashboard.html', username=session['username'])
+    return redirect(url_for('login'))
+
+#########################################################################################################################
+#route for student dashboard
+@app.route('/student_dashboard')
+def student_dashboard():
+    if 'username' in session:
+        return render_template('auth/dashboards/student_dashboard.html', username=session['username'])
+    return redirect(url_for('login'))
+
+#########################################################################################################################
+#route for teacher dashboard
+@app.route('/teacher_dashboard')
+def teacher_dashboard():
+    if 'username' in session:
+        return render_template('auth/dashboards/teacher_dashboard.html', username=session['username'])
+    return redirect(url_for('login'))
+
 #########################################################################################################################
 #route for logout
 @app.route('/logout')
 def logout():
     session.pop('username', None)
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 #########################################################################################################################
 #route for todayclasses
 @app.route("/classes")
