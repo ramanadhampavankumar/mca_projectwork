@@ -151,7 +151,7 @@ def logout():
 def admin_dashboard():
     """Admin dashboard for managing users."""
     users = User.query.all()  # Get all users from the database
-    return render_template('auth/dashboards/admin_dashboard.html', username=session['username'], users=users)
+    return render_template('auth/dashboards/admin/admin_dashboard.html', username=session['username'], users=users)
 
 # Route to manage users for admin
 @app.route('/admin/manage_users', methods=['GET', 'POST'])
@@ -174,7 +174,7 @@ def manage_users():
             return redirect(url_for('manage_users'))  # Refresh the list
 
     users = User.query.all()  # Get all users from the database
-    return render_template('auth/dashboards/manage_users.html', users=users)
+    return render_template('auth/dashboards/admin/manage_users.html', users=users)
 
 #########################################################################################################################
 #route for teacher dashboard
@@ -182,7 +182,7 @@ def manage_users():
 @role_required('teacher')
 def teacher_dashboard():
     """Teacher dashboard."""
-    return render_template('auth/dashboards/teacher_dashboard.html', username=session['username'])
+    return render_template('auth/dashboards/teacher/teacher_dashboard.html', username=session['username'])
 
 #########################################################################################################################
 #route for student dashboard
@@ -190,7 +190,7 @@ def teacher_dashboard():
 @role_required('student')
 def student_dashboard():
     """Student dashboard."""
-    return render_template('auth/dashboards/student_dashboard.html', username=session['username'])
+    return render_template('auth/dashboards/student/student_dashboard.html', username=session['username'])
 
 #########################################################################################################################
 #route for todayclasses

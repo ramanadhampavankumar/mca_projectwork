@@ -1,0 +1,60 @@
+{% extends 'base/base_admin.html' %}
+{% block title %} Classes{% endblock title %} 
+{% block body %}
+
+<main>
+    <h1>Manage Users (Admin)</h1><br/>
+    <!-- Display Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="error-message" role="alert">
+            {% for category, message in messages %}
+                <div class="error-message{{ category }}">
+                    {{ message }}
+                </div><br/>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+    <h2>User List</h2><br/>
+    <p>Below is the list of users. You can change their roles.</p><br/>
+    <div style="overflow-x: scroll;">
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Change Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if users %}
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.userid }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.role }}</td>
+                        <td>
+                            <form class="role-form" action="{{ url_for('manage_users') }}" method="POST">
+                                <input type="hidden" name="userid" value="{{ user.userid }}">
+                                <select name="role" class="form-control">
+                                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                    <option value="teacher" {% if user.role == 'teacher' %}selected{% endif %}>Teacher</option>
+                                    <option value="student" {% if user.role == 'student' %}selected{% endif %}>Student</option>
+                                </select>
+                                <button type="submit" class="role-btn">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="4">No users found.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+</main>
+
+{% endblock body %}
