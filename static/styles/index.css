@@ -315,3 +315,15 @@ align-items: center;
 justify-content: center;
 text-align: center;
 }
+
+
+/* Styling for success messages */
+.success-message {
+    color: green;
+    margin: 20px 0px 0px 0px; 
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+}
+
+
