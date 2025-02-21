@@ -1,0 +1,44 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Classes{% endblock title %} 
+
+{% block body %}
+<main>
+    <h1>Today's Classes</h1><br/>
+    <div style="overflow-x: auto; max-width: 100%;">
+
+        <!-- Display message if there are no classes -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Branch</th>
+                    <th>Subject</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Attendance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for subjects_classes in users %}
+                        <tr>
+                            <td>{{ subjects_classes.Branch }}</td>
+                            <td>{{ subjects_classes.Subject }}</td>
+                            <td>{{ subjects_classes.Start_Time.strftime("%d/%m/%Y %I:%M %p") }}</td>
+                            <td>{{ subjects_classes.End_Time.strftime("%d/%m/%Y %I:%M %p") }}</td>
+                            <td><a href="login" class="button">Status</a></td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="5">No classes today.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <img class="gif" src="https://media.tenor.com/PQGGoLePq94AAAAi/im-so-tired-stuart.gif" alt="hi-hello" title="gif"/>
+    </div>
+</main>
+
+{% endblock body %}

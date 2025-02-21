@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="{{ url_for('static', filename='styles/styles.css') }}" rel="stylesheet" type="text/css"/>
+    </head>
+    <title>Classes</title>
+    <body>
+        <div class="content">
+            <a href="/" class="button">Back</a>
+            <h1>Classes</h1>
+
+            <!-- Flash message display -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class="flash-messages">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Form to add a new class -->
+            <form action="{{ url_for('manage_classes') }}" method="POST">
+                <input type="text" name="branch" id="branch" placeholder="Branch" required />
+                <input type="text" name="subject" id="subject" placeholder="Subject" required />
+                <input type="datetime-local" name="start_time" id="start_time" required />
+                <input type="datetime-local" name="end_time" id="end_time" required />
+                <input type="submit" value="Add Task" id="add_btn" />
+            </form>
+
+            <!-- Display message if there are no classes -->
+            {% if subjects|length < 1 %}
+                <h4>There are no Classes... create one below</h4>
+            {% else %}
+                <!-- Table to show existing classes -->
+                <table>
+                    <tr>
+                        <th>Branch</th>
+                        <th>Subject</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Date Created</th> <!-- New column for date_created -->
+                        <th>Actions</th>
+                    </tr>
+                    {% for task in subjects %}
+                        <tr>
+                            <td>{{ task.Branch }}</td>
+                            <td>{{ task.Subject }}</td>
+                            <td>{{ task.Start_Time.strftime("%d/%m/%Y %I:%M %p") }}</td>
+                            <td>{{ task.End_Time.strftime("%d/%m/%Y %I:%M %p") }}</td>
+                            <td>{{ task.date_created.strftime("%d/%m/%Y %I:%M:%S %p") }}</td> <!-- Display date_created -->
+                            <td>
+                                <!-- Delete button linked to the delete route -->
+                                <a href="/delete/{{ task.id }}" onclick="return confirm('Are you sure you want to delete this class?')">Delete</a>
+                                <br />
+                                <a href="/update/{{ task.id }}">Update</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+    </body>
+</html>
