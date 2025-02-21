@@ -502,3 +502,70 @@ body {
   .content #add_btn:hover {
     background-color: #218838;
   }
+
+
+
+
+
+
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    color: #000000;
+    font-size: 14px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    background-color: #ffffff;
+    border: 1px solid #000000;
+    border-radius: 5px;
+    color: #363636;
+    font-size: 14px;
+}
+
+.form-group input:focus {
+    border-color: #ff7b00;
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #ff7b00;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+button:hover {
+    background-color: #e66a00;
+}
+
+.flash {
+    background-color: #ffcc00;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+    color: #000;
+    text-align: center;
+}
+
+.success {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.danger {
+    background-color: #dc3545;
+    color: #fff;
+}

@@ -331,6 +331,36 @@ def today_classes():
     ).all()
 
     return render_template('today_classes.html', users=users)
+
+
+# Route to profile page for admin, teacher, and student
+@app.route('/profile', methods=['GET', 'POST'])
+@role_required(['admin', 'teacher', 'student'])  # Allow all roles to access their profile
+def profile():
+    """View and update user profile."""
+    user = User.query.filter_by(username=session['username']).first()
+
+    if request.method == 'POST':
+        current_password = request.form['current_password']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+        
+        # Check if the current password is correct
+        if not user.check_password(current_password):
+            flash('Incorrect current password.', 'danger')
+        elif new_password != confirm_password:
+            flash('New passwords do not match.', 'danger')
+        elif len(new_password) < 6:
+            flash('New password must be at least 6 characters long.', 'danger')  # Password length check
+        else:
+            # Update password
+            user.set_password(new_password)
+            db.session.commit()
+            flash('Password updated successfully.', 'success')
+            return redirect(url_for('profile'))  # Redirect to the same page to show the updated password
+
+    return render_template('auth/dashboards/profile.html', user=user)
+
 #########################################################################################################################
 #route for contact page
 @app.route("/contact")
