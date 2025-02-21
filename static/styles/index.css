@@ -374,7 +374,6 @@ form.role-form {
 
 .form-control {
     display: block;
-    width: 100%;
     height: calc(1.5em + .75rem + 2px);
     padding: .375rem .75rem;
     font-size: 1rem;
@@ -386,4 +385,42 @@ form.role-form {
     border: 1px solid #ced4da;
     border-radius: 10px;
     transition: border-color .15sease-in-out, box-shadow .15sease-in-out;
+}
+
+
+article {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
+    border-radius: 5px;
+    padding: 3%;
+    margin: 0 2% 3% 2%;
+    background-color: #ffffff;
+    overflow: hidden;
+    border: 1px solid #9B9C9F;
+    align-items: center;
+}
+
+fieldset {
+    border: 1px solid #808080;
+    background: transparent;
+    border-radius: 5px;
+    padding: 2%;
+    width: 100%;
+}
+
+fieldset label {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif, Courier, monospace;
+    background: transparent;
+}
+
+legend {
+    display: block;
+    unicode-bidi: isolate;
+    padding-inline: 2px;
+    background: transparent;
+}
+
+#job-sec {
+    min-width: 40%;
+    padding: 0 2%;
+    max-width: 780px;
 }

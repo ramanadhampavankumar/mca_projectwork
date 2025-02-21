@@ -1,0 +1,35 @@
+{% extends 'base/base_teacher.html' %}
+{% block title %} View Users{% endblock title %}
+{% block body %}
+
+<main>
+    <h1>View Users</h1><br/>
+    <p>Below is the list of users.</p><br/>
+        <!-- Display list of users -->
+    <div style="overflow-x: scroll;">
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if users %}
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.userid }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.role }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="4">No users found.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+</main>
+
+{% endblock body %}

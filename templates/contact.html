@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#fff">
+    <meta name="msapplication-navbutton-color" content="#fff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#fff">
+    <meta property="og:title" content="Attendance System" />
+    <meta property="og:url" content="https://pavankumarcea.pythonanywhere.com/" />
+    <meta property="og:image" content="{{ url_for('static', filename='assets/images/logo/attendance-system-sm.jpg') }}" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/images/logo/attendance-system-sm.jpg') }}" />
+    <title>Contact Us</title>
+    <link href="{{ url_for('static', filename='styles/index.css') }}" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alumni+Sans+Inline+One&family=Noto+Sans:wght@700&family=Open+Sans:wght@800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main>
+        <p>Please go back the home page by Click <a href="/" class="button">Home</a></p><br/>
+        <img src="https://media.tenor.com/Wnd3_c9B75AAAAAi/can-you-believe-this-kevin.gif" alt="Under maintenance or construction" title="gif" width="256" height="256">
+        <br/>
+        <section  id="job-sec">
+            <article id="job-article">
+                <form class="role-form">
+                    <fieldset>
+                        <legend>Contact Us</legend>
+                        <label for="usrname">Your name</label><br/>
+                        <input type="text" id="usrname" name="usrname" required/><br/><br/>
+                        <label for="usrmail">Your email</label><br/>
+                        <input type="text" id="usrmail" name="usrmail" required/><br/><br/>
+                        <label for="subject">Subject</label><br/>
+                        <input type="text" id="subject" name="subject" required/><br/><br/>
+                        <label for="message" >Your message</label><br/>
+                        <textarea id="message" name="message" required ></textarea><br/><br/>
+                        <a href="maintenance" class="button">Submit</a>
+                    </fieldset>
+                </form>    
+            </article>
+        </section>
+    </main>
+</body>
+</html>

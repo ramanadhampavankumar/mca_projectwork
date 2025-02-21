@@ -184,6 +184,14 @@ def teacher_dashboard():
     """Teacher dashboard."""
     return render_template('auth/dashboards/teacher/teacher_dashboard.html', username=session['username'])
 
+# Route to manage users for admin
+@app.route('/teacher/view_users', methods=['GET', 'POST'])
+@role_required('teacher')
+def view_users():
+
+    users = User.query.all()  # Get all users from the database
+    return render_template('auth/dashboards/teacher/view_users.html', users=users)
+
 #########################################################################################################################
 #route for student dashboard
 @app.route('/student_dashboard')
@@ -198,6 +206,11 @@ def student_dashboard():
 def classes():
     return render_template("classes.html")
 
+#########################################################################################################################
+#route for contact page
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
 #########################################################################################################################
 #route for maintenance page
 @app.route("/maintenance")

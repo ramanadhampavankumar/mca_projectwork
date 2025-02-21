@@ -10,7 +10,7 @@
     <meta property="og:url" content="https://pavankumarcea.pythonanywhere.com/" />
     <meta property="og:image" content="{{ url_for('static', filename='assets/images/logo/attendance-system-sm.jpg') }}" />
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/images/logo/attendance-system-sm.jpg') }}" />
-    <title> {% block title %}<!--title block-->{% endblock title %} - Dashboard</title>
+    <title>Teacher - {% block title %}<!--title block-->{% endblock title %}</title>
     <link href="{{ url_for('static', filename='styles/index.css') }}" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,15 +25,17 @@
                 <img class="figure" src="{{ url_for('static', filename='assets/images/logo/attendance-system-high-resolution-logo-transparent.png') }}" alt="Attendance System logo" title="logo" />
             </div>
             <div class="addbtn">
-               <a href="{{ url_for('maintenance') }}">contact us</a>
+               <a href="{{ url_for('contact') }}">contact us</a>
             </div>
         </header>
         <nav>
             <ul>
                 <li class="hideOnMobile"><a href="/">Dashboard</a></li>
-                <li class="hideOnMobile"><a href="{{ url_for('maintenance') }}">Manage Users</a></li>
+                <li class="hideOnMobile"><a href="{{ url_for('view_users') }}">View Users</a></li>
                 <li class="hideOnMobile"><a href="{{ url_for('maintenance') }}">Manage Classes</a></li>
-                <li class="hideOnMobile"><a href="{{ url_for('maintenance') }}">Edit Proflies</a></li>
+                <li class="hideOnMobile"><a href="{{ url_for('maintenance') }}">Take Attendance</a></li>
+                <li class="hideOnMobile"><a href="{{ url_for('maintenance') }}">View Attendance</a></li>
+                <li class="hideOnMobile"><a href="{{ url_for('maintenance') }}">Proflie</a></li>
                 <li class="hideOnMobile"><a href="{{ url_for('logout') }}" class="logout">Logout</a></li>
                 <li class="mobile-logo"><img class="figure" src="{{ url_for('static', filename='assets/images/logo/attendance-system-high-resolution-logo-transparent.png') }}" alt="logo" title="logo" /></li>
                 <li class="menu-button" onclick=showSidebar()><a href="#"><svg xmlns="http://www.w3.org/2000/svg" height="26" viewBox="0 -960 960 960" width="26"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></a></li>
@@ -41,9 +43,11 @@
             <ul class="sidebar">
                 <li onclick=hideSidebar()><a href="#"><svg xmlns="http://www.w3.org/2000/svg" height="26" viewBox="0 -960 960 960" width="26"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></a></li>
                 <li><a href="/">Dashboard</a></li>
-                <li><a href="{{ url_for('maintenance') }}">Manage Users</a></li>
+                <li><a href="{{ url_for('view_users') }}">View Users</a></li>
                 <li><a href="{{ url_for('maintenance') }}">Manage Classes</a></li>
-                <li><a href="{{ url_for('maintenance') }}">Edit Proflies</a></li>
+                <li><a href="{{ url_for('maintenance') }}">Take Attendance</a></li>
+                <li><a href="{{ url_for('maintenance') }}">View Attendance</a></li>
+                <li><a href="{{ url_for('maintenance') }}">Proflie</a></li>
                 <li><a href="{{ url_for('logout') }}" class="logout">Logout</a></li>
             </ul>
         </nav>

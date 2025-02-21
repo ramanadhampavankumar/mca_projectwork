@@ -10,7 +10,7 @@
     <meta property="og:url" content="https://pavankumarcea.pythonanywhere.com/" />
     <meta property="og:image" content="{{ url_for('static', filename='assets/images/logo/attendance-system-sm.jpg') }}" />
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/images/logo/attendance-system-sm.jpg') }}" />
-    <title> {% block title %}<!--title block-->{% endblock title %} - Dashboard</title>
+    <title>Student - {% block title %}<!--title block-->{% endblock title %} </title>
     <link href="{{ url_for('static', filename='styles/index.css') }}" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +25,7 @@
                 <img class="figure" src="{{ url_for('static', filename='assets/images/logo/attendance-system-high-resolution-logo-transparent.png') }}" alt="Attendance System logo" title="logo" />
             </div>
             <div class="addbtn">
-               <a href="{{ url_for('maintenance') }}">contact us</a>
+               <a href="{{ url_for('contact') }}">contact us</a>
             </div>
         </header>
         <nav>
