@@ -229,7 +229,7 @@ def manage_classes():
             return f'Error: {e}'
     else:
         subjects = SubjectsClasses.query.filter(SubjectsClasses.Start_Time != None, SubjectsClasses.End_Time != None).order_by(SubjectsClasses.date_created).all()
-        return render_template('auth/dashboards/admin/manage_classes.html', subjects=subjects)
+        return render_template('auth/dashboards/teacher/manage_classes.html', subjects=subjects)
 #########################################################################
 #delete classes
 @app.route('/delete/<int:id>', methods=['GET', 'POST'])
@@ -265,7 +265,7 @@ def update_class(id):
         except Exception as e:
             flash(f'Error: {e}', 'danger')
 
-    return render_template('auth/dashboards/admin/update_class.html', task=task)
+    return render_template('auth/dashboards/teacher/update_class.html', task=task)
 ####################################################################################
 
 

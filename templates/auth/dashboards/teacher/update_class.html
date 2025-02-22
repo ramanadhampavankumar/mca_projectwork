@@ -1,0 +1,20 @@
+{% extends 'base/base_teacher.html' %}
+{% block title %}Upadate Class{% endblock title %} 
+{% block body %}
+<main>
+
+
+    <h1>Update Class</h1>
+    <div class="div-sec">
+    <form action="" id="form-sec" method="POST">
+        <input type="text" name="branch" id="text-sec" value="{{ task.Branch }}" required />
+        <input type="text" name="subject" id="text-sec" value="{{ task.Subject }}" required />
+        <input type="datetime-local" name="start_time" id="start_time" value="{{ task.Start_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
+        <input type="datetime-local" name="end_time" id="end_time" value="{{ task.End_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
+        <input type="text" name="date_created" value="{{ task.date_created.strftime('%d/%m/%Y %I:%M:%S %p') }}" disabled />
+        <input type="submit" value="Update" id="update" />
+        <a href="{{ url_for('manage_classes') }}" class="delete">Cancel</a>
+    </form>    
+</div>
+</main>
+{% endblock body %}
