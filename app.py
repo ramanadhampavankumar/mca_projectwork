@@ -195,9 +195,24 @@ def manage_users():
     users = User.query.all()  # Get all users from the database
     return render_template('auth/dashboards/admin/manage_users.html', users=users)
 
+#########################################################################################################################
+#route for teacher dashboard
+@app.route('/teacher_dashboard')
+@role_required('teacher')
+def teacher_dashboard():
+    """Teacher dashboard."""
+    return render_template('auth/dashboards/teacher/teacher_dashboard.html', username=session['username'])
+#########################################################################
+# Route to view users for teacher
+@app.route('/teacher/view_users', methods=['GET', 'POST'])
+@role_required('teacher')
+def view_users():
+
+    users = User.query.all()  # Get all users from the database
+    return render_template('auth/dashboards/teacher/view_users.html', users=users)
 
 ####################################################################################
-# Route to add classes for admin
+# Route to add classes for admin and teacher
 @app.route('/teacher/manage_classes', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])  # Allow both admin and teacher roles
 def manage_classes():
@@ -246,9 +261,10 @@ def delete_class(id):
     else:
         flash('Class not found.', 'danger')
     return redirect(url_for('manage_classes'))
+
 #########################################################################
 #update classes
-@app.route('/update/<int:id>', methods=['GET', 'POST'])
+@app.route('/teacher/manage_classes/update/<int:id>', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])  # Allow both admin and teacher to update
 def update_class(id):
     task = SubjectsClasses.query.get(id)
@@ -269,22 +285,6 @@ def update_class(id):
 ####################################################################################
 
 
-
-#########################################################################################################################
-#route for teacher dashboard
-@app.route('/teacher_dashboard')
-@role_required('teacher')
-def teacher_dashboard():
-    """Teacher dashboard."""
-    return render_template('auth/dashboards/teacher/teacher_dashboard.html', username=session['username'])
-
-# Route to manage users for admin
-@app.route('/teacher/view_users', methods=['GET', 'POST'])
-@role_required('teacher')
-def view_users():
-
-    users = User.query.all()  # Get all users from the database
-    return render_template('auth/dashboards/teacher/view_users.html', users=users)
 
 #########################################################################################################################
 #route for student dashboard
@@ -315,6 +315,21 @@ def attendance_status(class_id):
     # Not implemented yet
     pass
 
+@app.route('/admin/profile', methods=['GET', 'POST'])
+@role_required('admin')
+def admin_profile():
+    return profile('admin')
+
+@app.route('/teacher/profile', methods=['GET', 'POST'])
+@role_required('teacher')
+def teacher_profile():
+    return profile('teacher')
+
+@app.route('/student/profile', methods=['GET', 'POST'])
+@role_required('student')
+def student_profile():
+    return profile('student')
+
 
 #########################################################################################################################
 #route for todayclasses
@@ -332,11 +347,10 @@ def today_classes():
 
     return render_template('today_classes.html', users=users)
 
-
 # Route to profile page for admin, teacher, and student
-@app.route('/profile', methods=['GET', 'POST'])
-@role_required(['admin', 'teacher', 'student'])  # Allow all roles to access their profile
-def profile():
+@app.route('/<role>/profile/', methods=['GET', 'POST'])
+@role_required(['admin', 'teacher', 'student'])
+def profile(role):
     """View and update user profile."""
     user = User.query.filter_by(username=session['username']).first()
 
@@ -357,9 +371,9 @@ def profile():
             user.set_password(new_password)
             db.session.commit()
             flash('Password updated successfully.', 'success')
-            return redirect(url_for('profile'))  # Redirect to the same page to show the updated password
+            return redirect(url_for(f'{role}_profile'))  # Use the appropriate role-based profile URL
 
-    return render_template('auth/dashboards/profile.html', user=user)
+    return render_template(f'auth/dashboards/{role}/profile.html', user=user)
 
 #########################################################################################################################
 #route for contact page

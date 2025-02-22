@@ -1,5 +1,5 @@
 <!-- templates/auth/dashboards/profile.html -->
-{% extends 'base/base.html' %}
+{% extends 'base/base_teacher.html' %}
 
 {% block title %} Profile {% endblock title %}
 
@@ -9,7 +9,17 @@
 
 {% block body %}
 <main>
-    <h1>User Profile</h1>
+    <h1>User Profile</h1><br/>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
     <form method="POST">
         <div class="form-group">
             <label for="userid">User ID:</label>
@@ -26,7 +36,7 @@
             <input type="text" id="role" name="role" value="{{ user.role }}" disabled>
         </div>
 
-        <h3>Update Password</h3>
+        <h3>Update Password</h3><br/>
 
         <div class="form-group">
             <label for="current_password">Current Password:</label>

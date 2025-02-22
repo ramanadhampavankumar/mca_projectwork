@@ -50,7 +50,7 @@
                                 <!-- Delete button linked to the delete route -->
                                 <a href="/delete/{{ task.id }}" class="delete" onclick="return confirm('Are you sure you want to delete this class?')">Delete</a>
                                 <br />
-                                <a href="/update/{{ task.id }}" id="update">Update</a>
+                                <a href="/teacher/manage_classes/update/{{ task.id }}" id="update">Update</a>
                             </td>
                         </tr>
                     {% endfor %}
