@@ -1,25 +1,22 @@
-<!-- templates/auth/dashboards/profile.html -->
 {% extends 'base/base_teacher.html' %}
-
 {% block title %} Profile {% endblock title %}
-
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/dark.css') }}">
-{% endblock head %}
-
 {% block body %}
+
 <main>
     <h1>User Profile</h1><br/>
-    {% with messages = get_flashed_messages() %}
+<div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <li>{{ message }}</li>
+        <div class="flash-container">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">
+                    {{ message }}
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% endif %}
-{% endwith %}
-
+    {% endwith %}
+</div>
     <form method="POST">
         <div class="form-group">
             <label for="userid">User ID:</label>
@@ -58,16 +55,5 @@
         </div>
     </form>
 </main>
-{% endblock body %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="flash-container">
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-{% endwith %}
+{% endblock body %}

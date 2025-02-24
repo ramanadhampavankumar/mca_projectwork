@@ -37,7 +37,7 @@
                         <td>{{ user.username }}</td>
                         <td>{{ user.role }}</td>
                         <td>
-                            <form class="role-form" action="{{ url_for('manage_users') }}" method="POST">
+                            <form class="role-form" action="{{ url_for('manage_roles') }}" method="POST">
                                 <input type="hidden" name="userid" value="{{ user.userid }}">
                                 <select name="role" class="form-control">
                                     <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>

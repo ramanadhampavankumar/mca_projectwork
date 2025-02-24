@@ -31,11 +31,11 @@
         <nav>
             <ul>
                 <li class="hideOnMobile"><a href="/">Dashboard</a></li>
-                <li class="hideOnMobile"><a href="{{ url_for('manage_users') }}">Manage Users</a></li>
-                <li class="hideOnMobile"><a href="{{ url_for('manage_classes') }}">Manage Classes</a></li>
+                <li class="hideOnMobile"><a href="{{ url_for('manage_roles') }}">Manage Roles</a></li>
+                <li class="hideOnMobile"><a href="{{ url_for('manage_classes', role='admin') }}">Manage Classes</a></li>
                 <li class="hideOnMobile"><a href="{{ url_for('maintenance') }}">Take Attendance</a></li>
                 <li class="hideOnMobile"><a href="{{ url_for('maintenance') }}">View Attendance</a></li>
-                <li class="hideOnMobile"><a href="{{ url_for('profile', role='admin') }}">Edit Proflie</a></li>
+                <li class="hideOnMobile"><a href="{{ url_for('edit_profiles') }}">Edit Profile</a></li>
                 <li class="hideOnMobile"><a href="{{ url_for('logout') }}" class="logout">Logout</a></li>
                 <li class="mobile-logo"><img class="figure" src="{{ url_for('static', filename='assets/images/logo/attendance-system-high-resolution-logo-transparent.png') }}" alt="logo" title="logo" /></li>
                 <li class="menu-button" onclick=showSidebar()><a href="#"><svg xmlns="http://www.w3.org/2000/svg" height="26" viewBox="0 -960 960 960" width="26"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></svg></a></li>
@@ -43,11 +43,11 @@
             <ul class="sidebar">
                 <li onclick=hideSidebar()><a href="#"><svg xmlns="http://www.w3.org/2000/svg" height="26" viewBox="0 -960 960 960" width="26"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></a></li>
                 <li><a href="/">Dashboard</a></li>
-                <li><a href="{{ url_for('manage_users') }}">Manage Users</a></li>
-                <li><a href="{{ url_for('manage_classes') }}">Manage Classes</a></li>
+                <li><a href="{{ url_for('manage_roles') }}">Manage Roles</a></li>
+                <li><a href="{{ url_for('manage_classes', role='admin') }}">Manage Classes</a></li>
                 <li><a href="{{ url_for('maintenance') }}">Take Attendance</a></li>
                 <li><a href="{{ url_for('maintenance') }}">View Attendance</a></li>
-                <li><a href="{{ url_for('profile', role='admin') }}">Edit Proflie</a></li>
+                <li><a href="{{ url_for('edit_profiles') }}">Edit Profile</a></li>
                 <li><a href="{{ url_for('logout') }}" class="logout">Logout</a></li>
             </ul>
         </nav>

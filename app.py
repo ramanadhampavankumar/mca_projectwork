@@ -173,9 +173,9 @@ def admin_dashboard():
     return render_template('auth/dashboards/admin/admin_dashboard.html', username=session['username'], users=users)
 ####################################################################################
 # Route to manage users for admin
-@app.route('/admin/manage_users', methods=['GET', 'POST'])
+@app.route('/admin/manage_roles', methods=['GET', 'POST'])
 @role_required('admin')
-def manage_users():
+def manage_roles():
     """Admin can manage user roles."""
     if request.method == "POST":
         userid = request.form['userid']
@@ -190,10 +190,15 @@ def manage_users():
                 db.session.commit()
                 flash(f'User {user_to_update.username} role updated to {new_role}.', 'success')
 
-            return redirect(url_for('manage_users'))  # Refresh the list
+            return redirect(url_for('manage_roles'))  # Refresh the list
 
     users = User.query.all()  # Get all users from the database
-    return render_template('auth/dashboards/admin/manage_users.html', users=users)
+    return render_template('auth/dashboards/admin/manage_roles.html', users=users)
+
+@app.route('/edit_profiles', methods=['GET', 'POST'])
+@role_required('admin')
+def edit_profiles():
+    return render_template('auth/dashboards/admin/edit_profiles.html')
 
 #########################################################################################################################
 #route for teacher dashboard
@@ -315,10 +320,6 @@ def attendance_status(class_id):
     # Not implemented yet
     pass
 
-@app.route('/admin/profile', methods=['GET', 'POST'])
-@role_required('admin')
-def admin_profile():
-    return profile('admin')
 
 @app.route('/teacher/profile', methods=['GET', 'POST'])
 @role_required('teacher')
@@ -349,7 +350,7 @@ def today_classes():
 
 # Route to profile page for admin, teacher, and student
 @app.route('/<role>/profile/', methods=['GET', 'POST'])
-@role_required(['admin', 'teacher', 'student'])
+@role_required(['teacher', 'student'])
 def profile(role):
     """View and update user profile."""
     user = User.query.filter_by(username=session['username']).first()
@@ -371,9 +372,10 @@ def profile(role):
             user.set_password(new_password)
             db.session.commit()
             flash('Password updated successfully.', 'success')
-            return redirect(url_for(f'{role}_profile'))  # Use the appropriate role-based profile URL
+            return redirect(url_for('profile', role=role))  # Corrected redirection
 
     return render_template(f'auth/dashboards/{role}/profile.html', user=user)
+
 
 #########################################################################################################################
 #route for contact page
