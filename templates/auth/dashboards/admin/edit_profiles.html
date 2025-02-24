@@ -1,8 +1,52 @@
-{% extends "base/base_admin.html" %}
+{% extends 'base/base_admin.html' %}
+{% block title %}Admin{% endblock title %} 
 
-{% block content %}
-<h2>Edit Profile </h2>
-
-
-
+{% block body %}
+<main>
+    <h1>Edit Profile </h2>
+    <h2>All Users</h2><br/>
+    
+        <!-- Flash message display -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <br/>
+    <div style="overflow-x: auto; max-width: 100%;">
+    <table>
+        <tr>
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.userid }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                <!-- Edit Profile Button -->
+                <a href="{{ url_for('update_profile', user_id=user.userid) }}">
+                    <button id="update">Edit</button>
+                </a>
+    
+                <!-- Delete Form --><div class="role-form">
+                <form action="{{ url_for('delete_user', user_id=user.userid) }}" class="role-form" method="POST" style="display:inline;">
+                    <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this user?')">
+                        Delete
+                    </button>
+                </form>
+            </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+</main>
 {% endblock %}

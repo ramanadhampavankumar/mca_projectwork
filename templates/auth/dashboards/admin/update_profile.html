@@ -1,0 +1,24 @@
+{% extends 'base/base_admin.html' %}
+{% block title %}Admin{% endblock title %} 
+
+{% block body %}
+<main>
+<h3>Update User Profile</h3>
+<form method="POST">
+    <input type="hidden" name="user_id" value="{{ user.id }}">
+
+    <label>User ID:</label>
+    <input type="text" name="userid" value="{{ user.userid }}" required>
+
+    <label>Username:</label>
+    <input type="text" name="username" value="{{ user.username }}" required>
+
+    <label>New Password (optional):</label>
+    <input type="password" name="new_password">
+
+    <button type="submit">Update</button>
+    <a href="{{ url_for('edit_profiles') }}"><button type="button">Cancel</button></a>
+</form>
+
+</main>
+{% endblock body %}

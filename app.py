@@ -195,10 +195,54 @@ def manage_roles():
     users = User.query.all()  # Get all users from the database
     return render_template('auth/dashboards/admin/manage_roles.html', users=users)
 
-@app.route('/edit_profiles', methods=['GET', 'POST'])
+@app.route('/admin/edit_profiles', methods=['GET'])
 @role_required('admin')
 def edit_profiles():
-    return render_template('auth/dashboards/admin/edit_profiles.html')
+    users = User.query.all()
+    return render_template('auth/dashboards/admin/edit_profiles.html', users=users)
+
+# Dedicated Delete User Route
+@app.route('/admin/delete_user/<string:user_id>', methods=['POST'])
+@role_required('admin')
+def delete_user(user_id):
+    user = User.query.filter_by(userid=user_id).first()
+
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash('User deleted successfully!', 'success')
+    else:
+        flash('User not found.', 'danger')
+
+    return redirect(url_for('edit_profiles'))
+
+
+
+@app.route('/admin/update_profile/<string:user_id>', methods=['GET', 'POST'])
+@role_required('admin')
+def update_profile(user_id):
+    user = User.query.filter_by(userid=user_id).first_or_404()
+
+    if request.method == 'POST':
+        user.userid = request.form['userid']
+        user.username = request.form['username']
+        new_password = request.form.get('new_password')
+
+        if new_password:
+            user.set_password(new_password)  # Hash and update password
+
+        try:
+            db.session.commit()
+            flash("User updated successfully!", "success")
+        except Exception as e:
+            flash(f"Error updating user: {e}", "danger")
+
+        return redirect(url_for('edit_profiles'))  # Redirect back to edit profiles
+
+    return render_template('auth/dashboards/admin/update_profile.html', user=user)
+
+
+
 
 #########################################################################################################################
 #route for teacher dashboard
