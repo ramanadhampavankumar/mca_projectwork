@@ -502,6 +502,10 @@ input[type="datetime-local"]{
     text-decoration: none;
     -webkit-transition: background-color 0.3s ease;
     transition: background-color 0.3s ease;
+    width: none;
+    max-width: none;
+    border: none;
+    box-shadow: none;
 }
 
 .delete:hover {

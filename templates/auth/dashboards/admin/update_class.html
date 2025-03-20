@@ -1,4 +1,4 @@
-{% extends 'base/base_teacher.html' %}
+{% extends 'base/base_admin.html' %}
 {% block title %}Upadate Class{% endblock title %} 
 {% block body %}
 <main>
@@ -6,14 +6,25 @@
 
     <h1>Update Class</h1>
     <div class="div-sec">
+            <!-- Flash message display -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class="flash-messages">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+            
     <form action="" id="form-sec" method="POST">
-        <input type="text" name="branch" id="text-sec" value="{{ task.Branch }}" required />
-        <input type="text" name="subject" id="text-sec" value="{{ task.Subject }}" required />
-        <input type="datetime-local" name="start_time" id="start_time" value="{{ task.Start_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
-        <input type="datetime-local" name="end_time" id="end_time" value="{{ task.End_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
-        <input type="text" name="date_created" value="{{ task.date_created.strftime('%d/%m/%Y %I:%M:%S %p') }}" disabled />
+        <input type="text" name="branch" id="text-sec" value="{{ subject.Branch }}" required />
+        <input type="text" name="subject" id="text-sec" value="{{ subject.Subject }}" required />
+        <input type="datetime-local" name="start_time" id="start_time" value="{{ subject.Start_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
+        <input type="datetime-local" name="end_time" id="end_time" value="{{ subject.End_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
+        <input type="text" name="date_created" value="{{ subject.date_created.strftime('%d/%m/%Y %I:%M:%S %p') }}" disabled />
         <input type="submit" value="Update" id="update" />
-        <a href="{{ url_for('manage_classes') }}" class="delete">Cancel</a>
+        <a href="{{ url_for('manage_classes', role=role) }}" class="delete">Cancel</a>
     </form>    
 </div>
 </main>

@@ -261,76 +261,102 @@ def view_users():
     return render_template('auth/dashboards/teacher/view_users.html', users=users)
 
 ####################################################################################
-# Route to add classes for admin and teacher
-@app.route('/teacher/manage_classes', methods=['GET', 'POST'])
+@app.route('/<role>/manage_classes', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])  # Allow both admin and teacher roles
-def manage_classes():
+def manage_classes(role):
     """Admin and Teacher can add and view classes."""
     if request.method == "POST":
         branch = request.form['branch']
         subject = request.form['subject']
-        start_time_str = request.form['start_time']
-        end_time_str = request.form['end_time']
+        start_time_str = request.form.get('start_time')
+        end_time_str = request.form.get('end_time')
 
-        # Check if the start_time and end_time are not empty
-        if not start_time_str or not end_time_str:
-            return "Error: Start Time and End Time are required fields", 400
+        # Validate required fields
+        if not branch or not subject or not start_time_str or not end_time_str:
+            flash("Error: All fields are required", "danger")
+            return redirect(url_for('manage_classes', role=role))
 
         try:
             # Convert string to datetime objects
             start_time = datetime.strptime(start_time_str, "%Y-%m-%dT%H:%M")
             end_time = datetime.strptime(end_time_str, "%Y-%m-%dT%H:%M")
+
+            if start_time >= end_time:
+                flash("Error: Start time must be before end time", "danger")
+                return redirect(url_for('manage_classes', role=role))
+
+            new_class = SubjectsClasses(
+                Branch=branch, 
+                Subject=subject, 
+                Start_Time=start_time, 
+                End_Time=end_time
+            )
+
+            db.session.add(new_class)
+            db.session.commit()
+            flash("Class added successfully!", "success")
+            return redirect(url_for('manage_classes', role=role))
+
         except ValueError:
-            return "Error: Invalid date format. Please use YYYY-MM-DDTHH:MM format", 400
-        
-        new_task = SubjectsClasses(Branch=branch, Subject=subject, Start_Time=start_time, End_Time=end_time)
-        try:
-            db.session.add(new_task)
-            db.session.commit()
-            return redirect("/teacher/manage_classes")
+            flash("Error: Invalid date format. Use YYYY-MM-DDTHH:MM", "danger")
         except Exception as e:
-            print(f"Error: {e}")
-            return f'Error: {e}'
-    else:
-        subjects = SubjectsClasses.query.filter(SubjectsClasses.Start_Time != None, SubjectsClasses.End_Time != None).order_by(SubjectsClasses.date_created).all()
-        return render_template('auth/dashboards/teacher/manage_classes.html', subjects=subjects)
+            flash(f"Database Error: {e}", "danger")
+            db.session.rollback()
+
+        return redirect(url_for('manage_classes', role=role))
+
+    # Fetch classes for display
+    subjects = SubjectsClasses.query.filter(
+        SubjectsClasses.Start_Time.isnot(None), 
+        SubjectsClasses.End_Time.isnot(None)
+    ).order_by(SubjectsClasses.date_created).all()
+
+    return render_template(f'auth/dashboards/{role}/manage_classes.html', subjects=subjects, role=role)
 #########################################################################
-#delete classes
-@app.route('/delete/<int:id>', methods=['GET', 'POST'])
-@role_required(['admin', 'teacher'])  # Allow both admin and teacher to delete
-def delete_class(id):
-    task = SubjectsClasses.query.get(id)
-    if task:
-        try:
-            db.session.delete(task)
-            db.session.commit()
-            flash('Class deleted successfully!', 'success')
-        except Exception as e:
-            flash(f'Error: {e}', 'danger')
-    else:
-        flash('Class not found.', 'danger')
-    return redirect(url_for('manage_classes'))
+@app.route('/<role>/delete/<int:id>', methods=['POST'])
+@role_required(['admin', 'teacher'])
+def delete_class(role, id):
+    subject = SubjectsClasses.query.get_or_404(id)
+    try:
+        db.session.delete(subject)
+        db.session.commit()
+        flash('Class deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error: {e}', 'danger')
+
+    return redirect(url_for('manage_classes', role=role))
+
 
 #########################################################################
 #update classes
-@app.route('/teacher/manage_classes/update/<int:id>', methods=['GET', 'POST'])
+@app.route('/<role>/update/<int:id>', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])  # Allow both admin and teacher to update
-def update_class(id):
-    task = SubjectsClasses.query.get(id)
+def update_class(role, id):
+    subject = SubjectsClasses.query.get_or_404(id)  # Use get_or_404 for better error handling
+    
     if request.method == 'POST':
-        task.Branch = request.form['branch']
-        task.Subject = request.form['subject']
-        task.Start_Time = datetime.strptime(request.form['start_time'], "%Y-%m-%dT%H:%M")
-        task.End_Time = datetime.strptime(request.form['end_time'], "%Y-%m-%dT%H:%M")
-        
         try:
+            subject.Branch = request.form['branch']
+            subject.Subject = request.form['subject']
+            subject.Start_Time = datetime.strptime(request.form['start_time'], "%Y-%m-%dT%H:%M")
+            subject.End_Time = datetime.strptime(request.form['end_time'], "%Y-%m-%dT%H:%M")
+            
+            if subject.Start_Time >= subject.End_Time:
+                flash("Error: Start time must be before end time", "danger")
+                return redirect(url_for('update_class', role=role, id=id))
+            
             db.session.commit()
             flash('Class updated successfully!', 'success')
-            return redirect(url_for('manage_classes'))
+            return redirect(url_for('manage_classes', role=role))
+        except ValueError:
+            flash("Error: Invalid date format. Use YYYY-MM-DDTHH:MM", "danger")
         except Exception as e:
+            db.session.rollback()
             flash(f'Error: {e}', 'danger')
 
-    return render_template('auth/dashboards/teacher/update_class.html', task=task)
+    return render_template(f'auth/dashboards/{role}/update_class.html', subject=subject, role=role)
+
 ####################################################################################
 
 
@@ -377,17 +403,18 @@ def student_profile():
 
 
 #########################################################################################################################
-#route for todayclasses
 @app.route('/today_classes')
 def today_classes():
+    from datetime import datetime
+
     # Get today's date (start and end of day)
     start_of_day = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = datetime.today().replace(hour=23, minute=59, second=59, microsecond=999999)
 
-    # Query the classes for today
+    # Query the classes that either start or end today
     users = db.session.query(SubjectsClasses).filter(
-        SubjectsClasses.Start_Time >= start_of_day,
-        SubjectsClasses.End_Time <= end_of_day
+        (SubjectsClasses.Start_Time >= start_of_day) & (SubjectsClasses.Start_Time <= end_of_day) |
+        (SubjectsClasses.End_Time >= start_of_day) & (SubjectsClasses.End_Time <= end_of_day)
     ).all()
 
     return render_template('today_classes.html', users=users)
