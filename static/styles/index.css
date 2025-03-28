@@ -502,8 +502,7 @@ input[type="datetime-local"]{
     text-decoration: none;
     -webkit-transition: background-color 0.3s ease;
     transition: background-color 0.3s ease;
-    width: none;
-    max-width: none;
+    width: auto;
     border: none;
     box-shadow: none;
 }
@@ -511,6 +510,26 @@ input[type="datetime-local"]{
 .delete:hover {
     background-color: #ed1313;
 }
+
+.cancel {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 5px;
+    border-radius: 20px;
+    background-color: #ff7b00;
+    color: #fff;
+    text-decoration: none;
+    -webkit-transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease;
+    width: auto;
+    border: none;
+    box-shadow: none;
+}
+
+.cancel:hover {
+    background-color: #e66a00;
+}
+
 .form-group {
     margin-bottom: 15px;
 }

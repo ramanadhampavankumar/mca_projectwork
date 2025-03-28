@@ -201,7 +201,7 @@ def edit_profiles():
     users = User.query.all()
     return render_template('auth/dashboards/admin/edit_profiles.html', users=users)
 
-# Dedicated Delete User Route
+#Route for delete user for admin
 @app.route('/admin/delete_user/<string:user_id>', methods=['POST'])
 @role_required('admin')
 def delete_user(user_id):
@@ -217,7 +217,7 @@ def delete_user(user_id):
     return redirect(url_for('edit_profiles'))
 
 
-
+# Route for update profiles for admin
 @app.route('/admin/update_profile/<string:user_id>', methods=['GET', 'POST'])
 @role_required('admin')
 def update_profile(user_id):
@@ -241,26 +241,8 @@ def update_profile(user_id):
 
     return render_template('auth/dashboards/admin/update_profile.html', user=user)
 
-
-
-
-#########################################################################################################################
-#route for teacher dashboard
-@app.route('/teacher_dashboard')
-@role_required('teacher')
-def teacher_dashboard():
-    """Teacher dashboard."""
-    return render_template('auth/dashboards/teacher/teacher_dashboard.html', username=session['username'])
-#########################################################################
-# Route to view users for teacher
-@app.route('/teacher/view_users', methods=['GET', 'POST'])
-@role_required('teacher')
-def view_users():
-
-    users = User.query.all()  # Get all users from the database
-    return render_template('auth/dashboards/teacher/view_users.html', users=users)
-
 ####################################################################################
+#Route for manage classes for admin and teacher
 @app.route('/<role>/manage_classes', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])  # Allow both admin and teacher roles
 def manage_classes(role):
@@ -270,6 +252,7 @@ def manage_classes(role):
         subject = request.form['subject']
         start_time_str = request.form.get('start_time')
         end_time_str = request.form.get('end_time')
+        completed = 0 # Default to present classes (0)
 
         # Validate required fields
         if not branch or not subject or not start_time_str or not end_time_str:
@@ -289,7 +272,8 @@ def manage_classes(role):
                 Branch=branch, 
                 Subject=subject, 
                 Start_Time=start_time, 
-                End_Time=end_time
+                End_Time=end_time,
+                completed=completed
             )
 
             db.session.add(new_class)
@@ -313,6 +297,39 @@ def manage_classes(role):
 
     return render_template(f'auth/dashboards/{role}/manage_classes.html', subjects=subjects, role=role)
 #########################################################################
+#Route for make_uncomplete classes for admin and teacher
+@app.route('/<role>/complete_class/<int:id>', methods=['POST'])
+@role_required(['admin', 'teacher'])
+def complete_class(role, id):
+    task = SubjectsClasses.query.get(id)
+    if not task:
+        flash('Error: Class not found.', 'danger')
+        return redirect(url_for('manage_classes', role=role))
+
+    task.completed = 1  # Mark as completed
+    db.session.commit()
+    flash('Class marked as completed!', 'success')
+    
+    return redirect(url_for('manage_classes', role=role))
+
+#########################################################################
+#Route to mark class as incomplete for admin and teacher
+@app.route('/<role>/uncomplete_class/<int:id>', methods=['POST'])
+@role_required(['admin', 'teacher'])
+def uncomplete_class(role, id):
+    task = SubjectsClasses.query.get(id)
+    if not task:
+        flash('Error: Class not found.', 'danger')
+        return redirect(url_for('manage_classes', role=role))
+
+    task.completed = 0  # Mark as uncompleted
+    db.session.commit()
+    flash('Class marked as uncompleted!', 'success')
+    
+    return redirect(url_for('manage_classes', role=role))
+
+#########################################################################
+#Route for delete classes for admin and teacher
 @app.route('/<role>/delete/<int:id>', methods=['POST'])
 @role_required(['admin', 'teacher'])
 def delete_class(role, id):
@@ -329,7 +346,7 @@ def delete_class(role, id):
 
 
 #########################################################################
-#update classes
+#Route for update classes for admin and teacher
 @app.route('/<role>/update/<int:id>', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])  # Allow both admin and teacher to update
 def update_class(role, id):
@@ -357,68 +374,24 @@ def update_class(role, id):
 
     return render_template(f'auth/dashboards/{role}/update_class.html', subject=subject, role=role)
 
-####################################################################################
-
-
 
 #########################################################################################################################
-#route for student dashboard
-@app.route('/student_dashboard')
-@role_required('student')
-def student_dashboard():
-    """Student dashboard."""
-    return render_template('auth/dashboards/student/student_dashboard.html', username=session['username'])
-
-
-@app.route('/status_classes')
-@role_required('student')
-def status_classes():
-    # Get today's date (start and end of day)
-    start_of_day = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-    end_of_day = datetime.today().replace(hour=23, minute=59, second=59, microsecond=999999)
-
-    # Query the classes for today
-    users = db.session.query(SubjectsClasses).filter(
-        SubjectsClasses.Start_Time >= start_of_day,
-        SubjectsClasses.End_Time <= end_of_day
-    ).all()
-
-    return render_template('auth/dashboards/student/stutus_classes.html', users=users)
-
-@app.route('/attendance/<int:class_id>')
-def attendance_status(class_id):
-    # Not implemented yet
-    pass
-
-
-@app.route('/teacher/profile', methods=['GET', 'POST'])
+#route for teacher dashboard
+@app.route('/teacher_dashboard')
 @role_required('teacher')
-def teacher_profile():
-    return profile('teacher')
+def teacher_dashboard():
+    """Teacher dashboard."""
+    return render_template('auth/dashboards/teacher/teacher_dashboard.html', username=session['username'])
+#########################################################################
+# Route to view users for teacher
+@app.route('/teacher/view_users', methods=['GET', 'POST'])
+@role_required('teacher')
+def view_users():
 
-@app.route('/student/profile', methods=['GET', 'POST'])
-@role_required('student')
-def student_profile():
-    return profile('student')
+    users = User.query.all()  # Get all users from the database
+    return render_template('auth/dashboards/teacher/view_users.html', users=users)
 
-
-#########################################################################################################################
-@app.route('/today_classes')
-def today_classes():
-    from datetime import datetime
-
-    # Get today's date (start and end of day)
-    start_of_day = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
-    end_of_day = datetime.today().replace(hour=23, minute=59, second=59, microsecond=999999)
-
-    # Query the classes that either start or end today
-    users = db.session.query(SubjectsClasses).filter(
-        (SubjectsClasses.Start_Time >= start_of_day) & (SubjectsClasses.Start_Time <= end_of_day) |
-        (SubjectsClasses.End_Time >= start_of_day) & (SubjectsClasses.End_Time <= end_of_day)
-    ).all()
-
-    return render_template('today_classes.html', users=users)
-
+#########################################################################
 # Route to profile page for admin, teacher, and student
 @app.route('/<role>/profile/', methods=['GET', 'POST'])
 @role_required(['teacher', 'student'])
@@ -447,12 +420,75 @@ def profile(role):
 
     return render_template(f'auth/dashboards/{role}/profile.html', user=user)
 
+#########################################################################
+# Route to Edit profile for teacher
+@app.route('/teacher/profile', methods=['GET', 'POST'])
+@role_required('teacher')
+def teacher_profile():
+    return profile('teacher')
+
+#########################################################################################################################
+#route for student dashboard
+@app.route('/student_dashboard')
+@role_required('student')
+def student_dashboard():
+    """Student dashboard."""
+    return render_template('auth/dashboards/student/student_dashboard.html', username=session['username'])
+
+#########################################################################
+# Route to view classes for student
+@app.route('/status_classes')
+@role_required('student')
+def status_classes():
+    # Get today's date (start and end of day)
+    start_of_day = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = datetime.today().replace(hour=23, minute=59, second=59, microsecond=999999)
+
+    # Query the classes that either start or end today and are not completed
+    users = db.session.query(SubjectsClasses).filter(
+        (SubjectsClasses.Start_Time >= start_of_day) & (SubjectsClasses.Start_Time <= end_of_day) |
+        (SubjectsClasses.End_Time >= start_of_day) & (SubjectsClasses.End_Time <= end_of_day)
+    ).filter(SubjectsClasses.completed == 0).all()
+
+    return render_template('auth/dashboards/student/stutus_classes.html', users=users)
+
+#########################################################################
+# Route to view attendance for student
+@app.route('/attendance/<int:class_id>')
+def attendance_status(class_id):
+    # Not implemented yet
+    pass
+
+#########################################################################
+#Route to Edit profile for student
+@app.route('/student/profile', methods=['GET', 'POST'])
+@role_required('student')
+def student_profile():
+    return profile('student')
+
+
+#########################################################################################################################
+#Route to view today classes
+@app.route('/today_classes')
+def today_classes():
+    # Get today's date (start and end of day)
+    start_of_day = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = datetime.today().replace(hour=23, minute=59, second=59, microsecond=999999)
+
+    # Query classes that start or end today and are not completed
+    users = db.session.query(SubjectsClasses).filter(
+        ((SubjectsClasses.Start_Time >= start_of_day) & (SubjectsClasses.Start_Time <= end_of_day)) |
+        ((SubjectsClasses.End_Time >= start_of_day) & (SubjectsClasses.End_Time <= end_of_day))
+    ).filter(SubjectsClasses.completed == 0).all()
+
+    return render_template('today_classes.html', users=users)
 
 #########################################################################################################################
 #route for contact page
 @app.route("/contact")
 def contact():
     return render_template("contact.html")
+
 #########################################################################################################################
 #route for maintenance page
 @app.route("/maintenance")
@@ -460,6 +496,7 @@ def maintenance():
     return render_template("maintenance.html")
 
 #########################################################################################################################
+
 if __name__ == '__main__':
     # Create a db and table
     with app.app_context():

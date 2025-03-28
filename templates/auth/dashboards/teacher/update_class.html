@@ -1,31 +1,38 @@
 {% extends 'base/base_teacher.html' %}
-{% block title %}Upadate Class{% endblock title %} 
+{% block title %}Update Class{% endblock title %} 
 {% block body %}
 <main>
-
-
     <h1>Update Class</h1>
     <div class="div-sec">
-            <!-- Flash message display -->
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <ul class="flash-messages">
-                        {% for message in messages %}
-                            <li>{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
-            
-    <form action="" id="form-sec" method="POST">
-        <input type="text" name="branch" id="text-sec" value="{{ subject.Branch }}" required />
-        <input type="text" name="subject" id="text-sec" value="{{ subject.Subject }}" required />
-        <input type="datetime-local" name="start_time" id="start_time" value="{{ subject.Start_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
-        <input type="datetime-local" name="end_time" id="end_time" value="{{ subject.End_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
-        <input type="text" name="date_created" value="{{ subject.date_created.strftime('%d/%m/%Y %I:%M:%S %p') }}" disabled />
-        <input type="submit" value="Update" id="update" />
-        <a href="{{ url_for('manage_classes', role=role) }}" class="delete">Cancel</a>
-    </form>    
-</div>
+        <!-- Flash message display -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Update Form -->
+        <form action="{{ url_for('update_class', role=role, id=subject.id) }}" id="form-sec" method="POST">
+            <input type="text" name="branch" id="text-sec" value="{{ subject.Branch }}" required />
+            <input type="text" name="subject" id="text-sec" value="{{ subject.Subject }}" required />
+            <br /><p> Start Time &ensp; End Time </p>
+            <input type="datetime-local" name="start_time" id="start_time" value="{{ subject.Start_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
+            <input type="datetime-local" name="end_time" id="end_time" value="{{ subject.End_Time.strftime('%Y-%m-%dT%H:%M') }}" required />
+            <input type="text" name="date_created" value="{{ subject.date_created.strftime('%d/%m/%Y %I:%M:%S %p') }}" disabled />
+            <input type="submit" value="Update" id="update" />
+        </form>    
+
+        <!-- Delete Form (Placed Separately) -->
+        <form action="{{ url_for('delete_class', role=role, id=subject.id) }}" method="POST" id="form-sec" onsubmit="return confirm('Are you sure you want to delete this class?');">
+            <button type="submit" class="delete">Delete</button>
+        </form>
+
+        <!-- Cancel Button -->
+        <a href="{{ url_for('manage_classes', role=role) }}" class="cancel">Cancel</a>
+    </div>
 </main>
 {% endblock body %}
