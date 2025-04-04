@@ -1,0 +1,12 @@
+{% extends 'base/base_admin.html' %}
+{% block title %}View Attendance{% endblock title %}
+
+{% block body %}
+<main>
+
+<h1>View Attendance</h1><br/>
+<a href="{{ url_for('today_attendance_all', role='admin') }}" class="button">Today's Attendance Report</a><br/>
+<a href="{{ url_for('old_attendance_all', role='admin') }}" class="button">Old Attendance Report</a>
+
+</main>
+{% endblock %}

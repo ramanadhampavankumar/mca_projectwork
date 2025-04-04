@@ -2,7 +2,9 @@ from flask import Flask, render_template, Response, redirect, url_for, session, 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, date, time
+import pytz
+from sqlalchemy.orm import joinedload
 
 #########################################################################################################################
 app = Flask(__name__) # initializing
@@ -43,6 +45,13 @@ class SubjectsClasses(db.Model):  # Renamed to SubjectsClasses
     def __repr__(self):
         return f'<SubjectsClasses {self.id}>'
 
+# Attendance model
+class Attendance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subject_id = db.Column(db.Integer)
+    user_id = db.Column(db.String(10))
+    date_time = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 #########################################################################################################################
 # Role-based access control decorator
@@ -63,6 +72,9 @@ def role_required(roles):
         return wrapper
     return decorator
 
+today_date = date.today().strftime('%Y-%m-%d')
+today_start_ist = datetime.now(pytz.timezone('Asia/Kolkata')).replace(hour=0, minute=0, second=0, microsecond=0)
+today_end_ist = datetime.now(pytz.timezone('Asia/Kolkata')).replace(hour=23, minute=59, second=59, microsecond=999999)
 
 #########################################################################################################################
 #routes
@@ -80,12 +92,6 @@ def index():
             return redirect(url_for('student_dashboard'))
     return render_template('index.html')
 
-#not using now
-@app.route("/vidnoeo")
-def vidnoeo():
-    return Response(
-        generate_frame(), mimetype="multipart/x-mixed-replace; boundary=frame"
-    )
 
 #########################################################################################################################
 #route for register
@@ -195,51 +201,6 @@ def manage_roles():
     users = User.query.all()  # Get all users from the database
     return render_template('auth/dashboards/admin/manage_roles.html', users=users)
 
-@app.route('/admin/edit_profiles', methods=['GET'])
-@role_required('admin')
-def edit_profiles():
-    users = User.query.all()
-    return render_template('auth/dashboards/admin/edit_profiles.html', users=users)
-
-#Route for delete user for admin
-@app.route('/admin/delete_user/<string:user_id>', methods=['POST'])
-@role_required('admin')
-def delete_user(user_id):
-    user = User.query.filter_by(userid=user_id).first()
-
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        flash('User deleted successfully!', 'success')
-    else:
-        flash('User not found.', 'danger')
-
-    return redirect(url_for('edit_profiles'))
-
-
-# Route for update profiles for admin
-@app.route('/admin/update_profile/<string:user_id>', methods=['GET', 'POST'])
-@role_required('admin')
-def update_profile(user_id):
-    user = User.query.filter_by(userid=user_id).first_or_404()
-
-    if request.method == 'POST':
-        user.userid = request.form['userid']
-        user.username = request.form['username']
-        new_password = request.form.get('new_password')
-
-        if new_password:
-            user.set_password(new_password)  # Hash and update password
-
-        try:
-            db.session.commit()
-            flash("User updated successfully!", "success")
-        except Exception as e:
-            flash(f"Error updating user: {e}", "danger")
-
-        return redirect(url_for('edit_profiles'))  # Redirect back to edit profiles
-
-    return render_template('auth/dashboards/admin/update_profile.html', user=user)
 
 ####################################################################################
 #Route for manage classes for admin and teacher
@@ -374,6 +335,263 @@ def update_class(role, id):
 
     return render_template(f'auth/dashboards/{role}/update_class.html', subject=subject, role=role)
 
+
+#########################################################################
+@app.route('/admin/edit_profiles', methods=['GET'])
+@role_required('admin')
+def edit_profiles():
+    users = User.query.all()
+    return render_template('auth/dashboards/admin/edit_profiles.html', users=users)
+
+#Route for delete user for admin
+@app.route('/admin/delete_user/<string:user_id>', methods=['POST'])
+@role_required('admin')
+def delete_user(user_id):
+    user = User.query.filter_by(userid=user_id).first()
+
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash('User deleted successfully!', 'success')
+    else:
+        flash('User not found.', 'danger')
+
+    return redirect(url_for('edit_profiles'))
+
+#########################################################################
+# Route for update profiles for admin
+@app.route('/admin/update_profile/<string:user_id>', methods=['GET', 'POST'])
+@role_required('admin')
+def update_profile(user_id):
+    user = User.query.filter_by(userid=user_id).first_or_404()
+
+    if request.method == 'POST':
+        user.userid = request.form['userid']
+        user.username = request.form['username']
+        new_password = request.form.get('new_password')
+
+        if new_password:
+            user.set_password(new_password)  # Hash and update password
+
+        try:
+            db.session.commit()
+            flash("User updated successfully!", "success")
+        except Exception as e:
+            flash(f"Error updating user: {e}", "danger")
+
+        return redirect(url_for('edit_profiles'))  # Redirect back to edit profiles
+
+    return render_template('auth/dashboards/admin/update_profile.html', user=user)
+
+#########################################################################
+# Route to take attendance for admin and teacher
+@app.route('/<role>/take_attendance')
+@role_required(['admin', 'teacher'])
+def take_attendance(role):
+    return render_template(f'auth/dashboards/{role}/attendance/take_attendance.html')
+
+#Route to take live attendance for admin and teacher
+@app.route('/<role>/take_attendance/take_live_stream')
+@role_required(['admin', 'teacher'])
+def take_live_stream(role):
+    return render_template(f'auth/dashboards/{role}/attendance/take_live_stream.html')
+    
+
+#Route to take manually attendance for admin and teacher
+@app.route('/<role>/take_attendance/take_manually', methods=['GET', 'POST'])
+@role_required(['admin', 'teacher'])
+def take_manually(role):
+    classes = SubjectsClasses.query.filter(SubjectsClasses.completed == 0).order_by(SubjectsClasses.Start_Time).all()
+    students = User.query.filter_by(role='student').order_by(User.username).all()
+
+    if request.method == 'POST':
+        user_id = request.form.get('user_id')
+        subject_id = request.form.get('class_id')
+
+        if not user_id or not subject_id:
+            flash('Please select a user and a class.', 'danger')
+            return redirect(url_for('take_manually', role=role))
+
+        try:
+            subject = SubjectsClasses.query.get(subject_id)
+            user = User.query.filter_by(userid=user_id).first()
+
+            if not subject:
+                flash('Invalid class selected.', 'danger')
+                return redirect(url_for('take_manually', role=role))
+            if not user:
+                flash('Invalid User selected.', 'danger')
+                return redirect(url_for('take_manually', role=role))
+
+            # Record attendance for the current date and time
+            attendance_datetime = datetime.now(pytz.timezone('Asia/Kolkata'))
+
+            # Check if attendance already exists for this student and class on the current date
+            start_of_day = attendance_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_of_day = attendance_datetime.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+            existing_attendance = Attendance.query.filter(
+                Attendance.subject_id == subject.id,
+                Attendance.user_id == user.userid,
+                Attendance.date_time >= start_of_day,
+                Attendance.date_time <= end_of_day
+            ).first()
+
+            if not existing_attendance:
+                new_attendance = Attendance(subject_id=subject.id, user_id=user.userid, date_time=attendance_datetime)
+                db.session.add(new_attendance)
+                db.session.commit()
+                flash(f'Attendance recorded for {user.username} on {attendance_datetime.strftime("%d/%m/%Y %I:%M %p")} in {subject.Subject}!', 'success')
+            else:
+                flash(f'Attendance already recorded for {user.username} today in {subject.Subject}.', 'warning')
+
+            return redirect(url_for('take_manually', role=role))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error recording attendance: {e}', 'danger')
+
+    return render_template(f'auth/dashboards/{role}/attendance/take_manually.html', classes=classes, students=students, role=role)
+
+#Route to Add user images for admin and teacher
+@app.route('/<role>/take_attendance/add_user_images')
+@role_required(['admin', 'teacher'])
+def add_user_images(role):
+    return render_template(f'auth/dashboards/{role}/attendance/add_user_images.html')
+
+#########################################################################
+#Route for view attendance for admin and teacher
+@app.route('/<role>/view_attendance')
+@role_required(['admin', 'teacher'])
+def view_attendance(role):
+    return render_template(f'auth/dashboards/{role}/attendance/view_attendance.html')
+
+#Route to today attendance report for admin and teacher
+@app.route('/<role>/view_attendance/today_attendance_all', methods=['GET', 'POST'])
+@role_required(['admin', 'teacher'])
+def today_attendance_all(role):
+    """Fetches and displays today's attendance details for all students (database times)."""
+    today = date.today()
+    start_of_day = datetime.combine(today, time.min)
+    end_of_day = datetime.combine(today, time.max)
+
+    students = User.query.filter_by(role='student').order_by(User.userid).all()
+    subjects_today = SubjectsClasses.query.filter(
+        db.func.date(SubjectsClasses.Start_Time) == today
+    ).order_by(SubjectsClasses.Start_Time).all()
+
+    attendance_records_today = Attendance.query.filter(
+        Attendance.date_time >= start_of_day,
+        Attendance.date_time <= end_of_day
+    ).all()
+
+    attendance_status = {}
+    for record in attendance_records_today:
+        attendance_status[(record.user_id, record.subject_id)] = record.date_time
+
+    student_attendance_data = []
+    for student in students:
+        for subject_class in subjects_today:
+            is_present = (student.userid, subject_class.id) in attendance_status
+            attendance_time = attendance_status.get((student.userid, subject_class.id))
+
+            student_attendance_data.append({
+                'user_id': student.userid,
+                'username': student.username,
+                'branch': subject_class.Branch,
+                'subject': subject_class.Subject,
+                'start_time': subject_class.Start_Time,
+                'end_time': subject_class.End_Time,
+                'attendance_taken': attendance_time,
+                'attendance_status': 'Present' if is_present else 'Absent'
+            })
+
+    return render_template(
+        f'auth/dashboards/{role}/attendance/today_attendance_all.html',
+        student_attendance_data=student_attendance_data,
+        today=today
+    )
+
+
+# Route to view attendance (Admin and Teacher) - Database Time (No Timezone Conversion)
+@app.route('/<role>/view_attendance/old_attendance_all', methods=['GET', 'POST'])
+@role_required(['admin', 'teacher'])
+def old_attendance_all(role):
+    """Displays and filters old attendance records using database stored time (no timezone conversion)."""
+    students = User.query.filter_by(role='student').order_by(User.userid).all()
+    subjects_classes = SubjectsClasses.query.order_by(SubjectsClasses.Branch, SubjectsClasses.Subject).all()
+    attendance_records = Attendance.query.order_by(Attendance.date_time.desc()).all()
+
+    search_userid = request.form.get('userid')
+    search_branch = request.form.get('branch')
+    search_subject = request.form.get('subject')
+    search_date = request.form.get('attendance_date')
+
+    filtered_attendance = []
+    now_utc = datetime.utcnow()  # Get the current UTC time on the server
+
+    for record in attendance_records:
+        user = User.query.filter_by(userid=record.user_id).first()
+        subject_class = SubjectsClasses.query.get(record.subject_id)
+
+        if user and subject_class:
+            match = True
+            if search_userid and search_userid.lower() not in user.userid.lower():
+                match = False
+            if search_branch and search_branch.lower() not in subject_class.Branch.lower():
+                match = False
+            if search_subject and search_subject.lower() not in subject_class.Subject.lower():
+                match = False
+            if search_date:
+                try:
+                    search_dt = datetime.strptime(search_date, '%Y-%m-%d').date()
+                    record_dt = record.date_time.date()  # Compare dates directly as stored
+                    if search_dt != record_dt:
+                        match = False
+                except ValueError:
+                    flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
+                    return render_template(f'auth/dashboards/{role}/attendance/old_attendance_all.html',
+                                           students=students, subjects_classes=subjects_classes,
+                                           attendance_data=filtered_attendance, role=role)
+
+            if match:
+                is_future = record.date_time > now_utc
+                filtered_attendance.append({
+                    'userid': user.userid,
+                    'username': user.username,
+                    'branch': subject_class.Branch,
+                    'subject': subject_class.Subject,
+                    'start_time': subject_class.Start_Time, # As stored in DB
+                    'end_time': subject_class.End_Time,      # As stored in DB
+                    'attendance_taken': record.date_time,    # As stored in DB
+                    'attendance_status': 'Present',
+                    'attendance_id': record.id,
+                    'is_future': is_future  # Pass a boolean flag
+                })
+
+    return render_template(f'auth/dashboards/{role}/attendance/old_attendance_all.html',
+                           students=students, subjects_classes=subjects_classes,
+                           attendance_data=filtered_attendance, role=role)
+
+@app.route('/<role>/delete_attendance/<int:attendance_id>', methods=['POST'])
+@role_required(['admin', 'teacher'])
+def delete_attendance(role, attendance_id):
+    """Deletes a specific attendance record."""
+    attendance = Attendance.query.get_or_404(attendance_id)
+    now_utc = datetime.utcnow() # Compare with database time (assuming UTC)
+
+    if attendance.date_time > now_utc:
+        try:
+            db.session.delete(attendance)
+            db.session.commit()
+            flash('Future attendance record deleted successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error deleting attendance: {e}', 'danger')
+    else:
+        flash('Cannot delete past attendance records through this action.', 'warning')
+
+    return redirect(url_for('old_attendance_all', role=role))
 
 #########################################################################################################################
 #route for teacher dashboard

@@ -1,0 +1,115 @@
+{% extends 'base/base_' + role + '.html' %}
+{% block title %}Old Attendance Report{% endblock %}
+
+{% block body %}
+<main class="take-attendance-main">
+    <h1>Old Attendance Report</h1>
+    <div style="overflow-x: auto; max-width: 100%;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <section class="filter-section">
+            <form method="POST" id="form-sec" class="attendance-form">
+                <div class="form-group">
+                    <h2>Filter Attendance</h2>
+                    <select name="userid" class="select2">
+                        <option value="">-- Select User ID --</option>
+                        {% for student in students %}
+                            <option value="{{ student.userid }}">{{ student.userid }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    
+                    <select name="branch" id="branch" class="select2-classes">
+                        <option value="">-- Select Branch --</option>
+                        {% for branch in subjects_classes|unique(attribute='Branch') %}
+                            <option value="{{ branch.Branch }}">{{ branch.Branch }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    
+                    <select name="subject" id="subject" class="select2-classes">
+                        <option value="">-- Select Subject --</option>
+                        {% for subject in subjects_classes|unique(attribute='Subject') %}
+                            <option value="{{ subject.Subject }}">{{ subject.Subject }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="attendance_date">Attendance Date:</label>
+                    <input type="date" id="attendance_date" name="attendance_date">
+                </div>
+                <div class="form-actions">
+                    <button type="submit"  class="delete">Filter</button>
+                    <a href="{{ url_for('old_attendance_all', role=role) }}" id="update" class="button secondary">Reset Filter</a>
+                </div>
+            </form>
+        </section>
+
+        {% if attendance_data %}
+            <div style="overflow-x: auto; max-width: 100%;">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Branch</th>
+                            <th>Subject</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Attendance Taken</th>
+                            <th>Attendance Status</th>
+                            <th class="actions-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in attendance_data %}
+                            <tr>
+                                <td>{{ record.userid }}</td>
+                                <td>{{ record.username }}</td>
+                                <td>{{ record.branch }}</td>
+                                <td>{{ record.subject }}</td>
+                                <td>{{ record.start_time.strftime('%Y-%m-%d %I:%M %p') if record.start_time }}</td>
+                                <td>{{ record.end_time.strftime('%Y-%m-%d %I:%M %p') if record.end_time }}</td>
+                                <td>{{ record.attendance_taken.strftime('%Y-%m-%d %I:%M %p') }}</td>
+                                <td>{{ record.attendance_status }}</td>
+                                <td class="actions-column">
+                                    {% if record.is_future %}
+                                        <form method="POST" action="{{ url_for('delete_attendance', role=role, attendance_id=record.attendance_id) }}" class="role-form">
+                                            <button type="submit" class="delete" onclick="return confirm('Are you sure you want to delete this future attendance record?')">Delete</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="past-record">Past</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="no-records">No old attendance records found.</p>
+        {% endif %}
+    </div>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2(); // Initialize User ID dropdown
+            $('.select2-classes').select2(); // Initialize Branch and Subject dropdowns
+        });
+    </script>
+</main>
+{% endblock %}

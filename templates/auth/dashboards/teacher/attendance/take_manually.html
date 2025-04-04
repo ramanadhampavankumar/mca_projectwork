@@ -1,0 +1,81 @@
+{% extends 'base/base_teacher.html' %}
+
+{% block title %}Manual Attendance - For User{% endblock title %}
+
+{% block body %}
+<main class="take-attendance-main">
+    <h1>Take Attendance Manually - For a User</h1>
+    <div style="overflow-x: auto; max-width: 100%;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <form id="form-sec" method="POST" class="attendance-form">
+        <div class="form-group">
+            <label for="user_id">Select User:</label>
+            <select name="user_id" id="text-sec" class="select2" required>
+                <option value="">-- Select a User --</option>
+                {% for user in students %}
+                    <option value="{{ user.userid }}">{{ user.username }} ({{ user.userid }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="class_id">Select Class (Search by Branch/Subject):</label>
+            <select name="class_id" id="class_id" class="select2-classes" required>
+                <option value="">-- Select a Class --</option>
+                {% for class in classes %}
+                    <option value="{{ class.id }}"
+                            data-branch="{{ class.Branch }}"
+                            data-subject="{{ class.Subject }}"
+                            data-start-time="{{ class.Start_Time.strftime('%Y-%m-%d %I:%M %p') }}"
+                            data-end-time="{{ class.End_Time.strftime('%Y-%m-%d %I:%M %p') }}">
+                        {{ class.Branch }} - {{ class.Subject }} ({{ class.Start_Time.strftime('%Y-%m-%d %I:%M %p') }} - {{ class.End_Time.strftime('%Y-%m-%d %I:%M %p') }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="start_time_label">Start Time:</label>
+            <input type="text" id="start_time_label" value="-- Select Class --" readonly class="readonly-input">
+        </div>
+        <div class="form-group">
+            <label for="end_time_label">End Time:</label>
+            <input type="text" id="end_time_label" value="-- Select Class --" readonly class="readonly-input">
+        </div>
+        <button type="submit" class="button">Mark Attendance</button>
+    </form>
+    </div>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2(); // Initialize user dropdown
+            $('.select2-classes').select2(); // Initialize classes dropdown
+
+            $('#class_id').on('change', function() {
+                var selectedOption = $(this).find(':selected');
+                var startTime = selectedOption.data('start-time');
+                var endTime = selectedOption.data('end-time');
+
+                if (startTime && endTime) {
+                    $('#start_time_label').val(startTime);
+                    $('#end_time_label').val(endTime);
+                } else {
+                    $('#start_time_label').val('-- Select Class --');
+                    $('#end_time_label').val('-- Select Class --');
+                }
+            });
+        });
+    </script>
+</main>
+{% endblock body %}

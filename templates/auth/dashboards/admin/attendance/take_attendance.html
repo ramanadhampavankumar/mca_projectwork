@@ -1,0 +1,13 @@
+{% extends 'base/base_admin.html' %}
+{% block title %}Take Attendance{% endblock title %} 
+{% block body %}
+<main>
+<h1>Take Attendance</h1><br/>
+    <a href="{{ url_for('take_live_stream', role='admin') }}" class="button">Take Live Stream</a><br/>
+    <a href="{{ url_for('take_manually', role='admin') }}" class="button">Take Manually</a><br/>
+    <a href="{{ url_for('add_user_images', role='admin') }}" class="button">Add User Images</a>
+
+</main>
+
+</script>
+{% endblock %}

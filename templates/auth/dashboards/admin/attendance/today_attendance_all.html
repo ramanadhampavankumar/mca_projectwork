@@ -1,0 +1,44 @@
+{% extends 'base/base_admin.html' %}
+
+{% block title %}Today's Attendance{% endblock title %}
+
+{% block body %}
+<main class="today-attendance-main">
+    <h1>Today's Attendance ({{ today.strftime('%d %B, %Y') }})</h1>
+
+    {% if student_attendance_data %}
+    <div style="overflow-x: auto; max-width: 100%;">
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Branch</th>
+                <th>Subject</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Attendance Taken</th>
+                <th>Attendance Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in student_attendance_data %}
+            <tr>
+                <td>{{ data.user_id }}</td>
+                <td>{{ data.username }}</td>
+                <td>{{ data.branch }}</td>
+                <td>{{ data.subject }}</td>
+                <td>{{ data.start_time.strftime('%Y-%m-%d %I:%M %p') if data.start_time }}</td>
+                <td>{{ data.end_time.strftime('%Y-%m-%d %I:%M %p') if data.end_time }}</td>
+                <td>{{ data.attendance_taken.strftime('%Y-%m-%d %I:%M %p') if data.attendance_taken }}</td>
+                <td>{{ data.attendance_status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p>No attendance data found for today.</p>
+    {% endif %}
+</main>
+{% endblock body %}

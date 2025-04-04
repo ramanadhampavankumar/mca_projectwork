@@ -1,0 +1,45 @@
+{% extends 'base/base_teacher.html' %}
+{% block title %}Take Attendance{% endblock title %} 
+{% block body %}
+<main>
+<div  style="overflow-x: auto; max-width: 100%;">
+    <div>
+        <h1>Face Recognition Based Attendance System</h1>
+        <h4>{{ datetoday2 }}</h4>
+    </div>
+    
+    {% if mess %}
+    <p class="message">{{ mess }}</p>
+    {% endif %}
+
+    <div class="video-container">
+        <video id="video" autoplay></video>
+    </div>
+    <canvas id="canvas" width="320" height="240"></canvas>
+    <button onclick="captureAttendance()" class="button_a">Take Attendance</button>
+    <a href="{{ url_for('take_manually', role='admin') }}" class="button_a">Take Manually</a>
+</div> 
+</main>
+
+<script>
+    let video = document.getElementById('video');
+    let canvas = document.getElementById('canvas');
+    let context = canvas.getContext('2d');
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        .then(stream => video.srcObject = stream)
+        .catch(error => alert('Unable to access webcam. Check permissions.'));
+
+    function captureAttendance() {
+        context.drawImage(video, 0, 0, 320, 240);
+        fetch('/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: canvas.toDataURL("image/jpeg") })
+        })
+        .then(response => response.json())
+        .then(data => { alert(data.message); location.reload(); })
+        .catch(console.error);
+    }
+</script>
+{% endblock %}
