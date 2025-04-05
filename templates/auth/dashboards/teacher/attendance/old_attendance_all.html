@@ -24,31 +24,29 @@
                     <select name="userid" class="select2">
                         <option value="">-- Select User ID --</option>
                         {% for student in students %}
-                            <option value="{{ student.userid }}">{{ student.userid }}</option>
+                            <option value="{{ student.userid }}" {% if request.form.userid == student.userid %}selected{% endif %}>{{ student.userid }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
-                    
-                    <select name="branch" id="branch" class="select2-classes">
+                    <select name="branch" id="branch" class="select2-branch select2-classes">
                         <option value="">-- Select Branch --</option>
                         {% for branch in subjects_classes|unique(attribute='Branch') %}
-                            <option value="{{ branch.Branch }}">{{ branch.Branch }}</option>
+                            <option value="{{ branch.Branch }}" {% if request.form.branch == branch.Branch %}selected{% endif %}>{{ branch.Branch }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
-                    
-                    <select name="subject" id="subject" class="select2-classes">
+                    <select name="subject" id="subject" class="select2-subject select2-classes">
                         <option value="">-- Select Subject --</option>
                         {% for subject in subjects_classes|unique(attribute='Subject') %}
-                            <option value="{{ subject.Subject }}">{{ subject.Subject }}</option>
+                            <option value="{{ subject.Subject }}" {% if request.form.subject == subject.Subject %}selected{% endif %}>{{ subject.Subject }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="attendance_date">Attendance Date:</label>
-                    <input type="date" id="attendance_date" name="attendance_date">
+                    <input type="date" id="attendance_date" name="attendance_date" value="{{ request.form.attendance_date }}">
                 </div>
                 <div class="form-actions">
                     <button type="submit"  class="delete">Filter</button>
@@ -82,8 +80,8 @@
                                 <td>{{ record.subject }}</td>
                                 <td>{{ record.start_time.strftime('%Y-%m-%d %I:%M %p') if record.start_time }}</td>
                                 <td>{{ record.end_time.strftime('%Y-%m-%d %I:%M %p') if record.end_time }}</td>
-                                <td>{{ record.attendance_taken.strftime('%Y-%m-%d %I:%M %p') }}</td>
-                                <td>{{ record.attendance_status }}</td>
+                                <td>{{ record.attendance_taken.strftime('%Y-%m-%d %I:%M %p') if record.attendance_taken }}</td>
+                                <td class="{{ 'absent' if record.attendance_status == 'Absent' else 'present' }}">{{ record.attendance_status }}</td>
                                 <td class="actions-column">
                                     {% if record.is_future %}
                                         <form method="POST" action="{{ url_for('delete_attendance', role=role, attendance_id=record.attendance_id) }}" class="role-form">
@@ -107,8 +105,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.select2').select2(); // Initialize User ID dropdown
-            $('.select2-classes').select2(); // Initialize Branch and Subject dropdowns
+            $('.select2').select2({
+                placeholder: "-- Select User ID --",
+                allowClear: true
+            });
+            $('.select2-branch').select2({
+                placeholder: "-- Select Branch --",
+                allowClear: true
+            });
+            $('.select2-subject').select2({
+                placeholder: "-- Select Subject --",
+                allowClear: true
+            });
         });
     </script>
 </main>

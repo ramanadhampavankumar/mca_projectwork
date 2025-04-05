@@ -73,8 +73,8 @@ def role_required(roles):
     return decorator
 
 today_date = date.today().strftime('%Y-%m-%d')
-today_start_ist = datetime.now(pytz.timezone('Asia/Kolkata')).replace(hour=0, minute=0, second=0, microsecond=0)
-today_end_ist = datetime.now(pytz.timezone('Asia/Kolkata')).replace(hour=23, minute=59, second=59, microsecond=999999)
+today_start = datetime.combine(date.today(), time.min)
+today_end = datetime.combine(date.today(), time.max)
 
 #########################################################################################################################
 #routes
@@ -470,30 +470,45 @@ def view_attendance(role):
 @app.route('/<role>/view_attendance/today_attendance_all', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])
 def today_attendance_all(role):
-    """Fetches and displays today's attendance details for all students (database times)."""
+    """Fetches and displays today's attendance details for all students (database times) with filtering."""
     today = date.today()
     start_of_day = datetime.combine(today, time.min)
     end_of_day = datetime.combine(today, time.max)
 
-    students = User.query.filter_by(role='student').order_by(User.userid).all()
-    subjects_today = SubjectsClasses.query.filter(
+    students_query = User.query.filter_by(role='student').order_by(User.userid)
+    subjects_today_query = SubjectsClasses.query.filter(
         db.func.date(SubjectsClasses.Start_Time) == today
-    ).order_by(SubjectsClasses.Start_Time).all()
+    ).order_by(SubjectsClasses.Start_Time)
 
-    attendance_records_today = Attendance.query.filter(
-        Attendance.date_time >= start_of_day,
-        Attendance.date_time <= end_of_day
-    ).all()
+    # Get filter parameters from the form
+    filter_userid = request.form.get('userid')
+    filter_branch = request.form.get('branch')
+    filter_subject = request.form.get('subject')
 
-    attendance_status = {}
-    for record in attendance_records_today:
-        attendance_status[(record.user_id, record.subject_id)] = record.date_time
+    # Apply filters to the queries
+    if filter_userid:
+        students_query = students_query.filter(User.userid == filter_userid)
+    if filter_branch:
+        subjects_today_query = subjects_today_query.filter(SubjectsClasses.Branch == filter_branch)
+    if filter_subject:
+        subjects_today_query = subjects_today_query.filter(SubjectsClasses.Subject == filter_subject)
+
+    students = students_query.all()
+    subjects_today = subjects_today_query.all()
 
     student_attendance_data = []
     for student in students:
         for subject_class in subjects_today:
-            is_present = (student.userid, subject_class.id) in attendance_status
-            attendance_time = attendance_status.get((student.userid, subject_class.id))
+            # Check if there's an attendance record for this student and subject today
+            attendance_record = Attendance.query.filter(
+                Attendance.user_id == student.userid,
+                Attendance.subject_id == subject_class.id,
+                Attendance.date_time >= start_of_day,
+                Attendance.date_time <= end_of_day
+            ).first()
+
+            is_present = bool(attendance_record)
+            attendance_time = attendance_record.date_time if attendance_record else None
 
             student_attendance_data.append({
                 'user_id': student.userid,
@@ -509,15 +524,21 @@ def today_attendance_all(role):
     return render_template(
         f'auth/dashboards/{role}/attendance/today_attendance_all.html',
         student_attendance_data=student_attendance_data,
-        today=today
+        today=today,
+        students=User.query.filter_by(role='student').order_by(User.userid).all(),
+        branches=SubjectsClasses.query.with_entities(SubjectsClasses.Branch).distinct().order_by(SubjectsClasses.Branch).all(),
+        subjects=SubjectsClasses.query.with_entities(SubjectsClasses.Subject).distinct().order_by(SubjectsClasses.Subject).all(),
+        filter_userid=filter_userid,
+        filter_branch=filter_branch,
+        filter_subject=filter_subject,
+        role=role  # Pass the 'role' variable to the template context
     )
-
 
 # Route to view attendance (Admin and Teacher) - Database Time (No Timezone Conversion)
 @app.route('/<role>/view_attendance/old_attendance_all', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])
 def old_attendance_all(role):
-    """Displays and filters old attendance records using database stored time (no timezone conversion)."""
+    """Displays and filters old attendance records, showing Present/Absent status based on recorded entries (no timezone conversion)."""
     students = User.query.filter_by(role='student').order_by(User.userid).all()
     subjects_classes = SubjectsClasses.query.order_by(SubjectsClasses.Branch, SubjectsClasses.Subject).all()
     attendance_records = Attendance.query.order_by(Attendance.date_time.desc()).all()
@@ -527,51 +548,78 @@ def old_attendance_all(role):
     search_subject = request.form.get('subject')
     search_date = request.form.get('attendance_date')
 
-    filtered_attendance = []
+    filtered_attendance_data = []
     now_utc = datetime.utcnow()  # Get the current UTC time on the server
 
-    for record in attendance_records:
-        user = User.query.filter_by(userid=record.user_id).first()
-        subject_class = SubjectsClasses.query.get(record.subject_id)
-
-        if user and subject_class:
-            match = True
-            if search_userid and search_userid.lower() not in user.userid.lower():
-                match = False
-            if search_branch and search_branch.lower() not in subject_class.Branch.lower():
-                match = False
-            if search_subject and search_subject.lower() not in subject_class.Subject.lower():
-                match = False
+    for student in students:
+        for subject_class in subjects_classes:
+            # Determine search filters
+            user_match = not search_userid or search_userid.lower() in student.userid.lower()
+            branch_match = not search_branch or search_branch.lower() in subject_class.Branch.lower()
+            subject_match = not search_subject or search_subject.lower() in subject_class.Subject.lower()
+            date_match = True
             if search_date:
                 try:
                     search_dt = datetime.strptime(search_date, '%Y-%m-%d').date()
-                    record_dt = record.date_time.date()  # Compare dates directly as stored
-                    if search_dt != record_dt:
-                        match = False
                 except ValueError:
                     flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
                     return render_template(f'auth/dashboards/{role}/attendance/old_attendance_all.html',
                                            students=students, subjects_classes=subjects_classes,
-                                           attendance_data=filtered_attendance, role=role)
+                                           attendance_data=filtered_attendance_data, role=role)
 
-            if match:
-                is_future = record.date_time > now_utc
-                filtered_attendance.append({
-                    'userid': user.userid,
-                    'username': user.username,
-                    'branch': subject_class.Branch,
-                    'subject': subject_class.Subject,
-                    'start_time': subject_class.Start_Time, # As stored in DB
-                    'end_time': subject_class.End_Time,      # As stored in DB
-                    'attendance_taken': record.date_time,    # As stored in DB
-                    'attendance_status': 'Present',
-                    'attendance_id': record.id,
-                    'is_future': is_future  # Pass a boolean flag
-                })
+                # Check if there's any attendance for this student and subject on the searched date
+                attendance_on_date = Attendance.query.filter(
+                    Attendance.user_id == student.userid,
+                    Attendance.subject_id == subject_class.id,
+                    db.func.date(Attendance.date_time) == search_dt
+                ).first()
+                date_match = bool(attendance_on_date)  # Present if a record exists
+
+            if user_match and branch_match and subject_match:
+                # Fetch the latest attendance record for this student and subject
+                latest_attendance = Attendance.query.filter(
+                    Attendance.user_id == student.userid,
+                    Attendance.subject_id == subject_class.id
+                ).order_by(Attendance.date_time.desc()).first()
+
+                attendance_taken = latest_attendance.date_time if latest_attendance else None
+                attendance_status = 'Present' if latest_attendance else 'Absent'
+                attendance_id = latest_attendance.id if latest_attendance else None
+                is_future = attendance_taken > now_utc if attendance_taken else False
+
+                if search_date:
+                    # If searching by date, only show entries where attendance matches the date
+                    if date_match:
+                        filtered_attendance_data.append({
+                            'userid': student.userid,
+                            'username': student.username,
+                            'branch': subject_class.Branch,
+                            'subject': subject_class.Subject,
+                            'start_time': subject_class.Start_Time,  # As stored in DB
+                            'end_time': subject_class.End_Time,    # As stored in DB
+                            'attendance_taken': attendance_taken,  # As stored in DB
+                            'attendance_status': attendance_status,
+                            'attendance_id': attendance_id,
+                            'is_future': is_future
+                        })
+                else:
+                    # If not searching by date, show all student-subject combinations and their latest status
+                    filtered_attendance_data.append({
+                        'userid': student.userid,
+                        'username': student.username,
+                        'branch': subject_class.Branch,
+                        'subject': subject_class.Subject,
+                        'start_time': subject_class.Start_Time,  # As stored in DB
+                        'end_time': subject_class.End_Time,    # As stored in DB
+                        'attendance_taken': attendance_taken,  # As stored in DB
+                        'attendance_status': attendance_status,
+                        'attendance_id': attendance_id,
+                        'is_future': is_future
+                    })
 
     return render_template(f'auth/dashboards/{role}/attendance/old_attendance_all.html',
                            students=students, subjects_classes=subjects_classes,
-                           attendance_data=filtered_attendance, role=role)
+                           attendance_data=filtered_attendance_data, role=role)
 
 @app.route('/<role>/delete_attendance/<int:attendance_id>', methods=['POST'])
 @role_required(['admin', 'teacher'])

@@ -45,8 +45,8 @@
                 <li><a href="/">Dashboard</a></li>
                 <li><a href="{{ url_for('view_users') }}">View Users</a></li>
                 <li><a href="{{ url_for('manage_classes',role='teacher') }}">Manage Classes</a></li>
+                <li><a href="{{ url_for('take_attendance', role='teacher') }}">Take Attendance</a></li>
                 <li><a href="{{ url_for('view_attendance', role='teacher') }}">View Attendance</a></li>
-                <li><a href="{{ url_for('profile', role='teacher') }}">Edit Profile</a></li>
                 <li><a href="{{ url_for('profile', role='teacher') }}">Edit Proflie</a></li>
                 <li><a href="{{ url_for('logout') }}" class="logout">Logout</a></li>
             </ul>
