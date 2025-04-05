@@ -720,10 +720,142 @@ def status_classes():
 
 #########################################################################
 # Route to view attendance for student
-@app.route('/attendance/<int:class_id>')
-def attendance_status(class_id):
-    # Not implemented yet
-    pass
+@app.route('/student/attendance/view_attendance_report')
+@role_required('student')
+def view_attendance_report():
+    return render_template('auth/dashboards/student/attendance/view_attendance_report.html')
+
+@app.route('/student/attendance/today_attendance', methods=['GET', 'POST'])
+@role_required('student')
+def today_attendance():
+    """Displays today's attendance for the logged-in student with subject search and status radio buttons."""
+    today = date.today()
+    start_of_day = datetime.combine(today, time.min)
+    end_of_day = datetime.combine(today, time.max)
+
+    student = User.query.filter_by(username=session['username'], role='student').first()
+
+    if not student:
+        flash("Error: Student user not found.", "danger")
+        return redirect(url_for('student_dashboard'))
+
+    # Get filter parameters from the form
+    filter_subject = request.form.get('subject')
+    filter_status = request.form.get('status')
+
+    attendance_data = []
+    subjects_today_query = SubjectsClasses.query.filter(
+        db.func.date(SubjectsClasses.Start_Time) == today
+    ).order_by(SubjectsClasses.Start_Time)
+
+    subjects_today = subjects_today_query.all()
+
+    for subject_class in subjects_today:
+        attendance_record = Attendance.query.filter(
+            Attendance.user_id == student.userid,
+            Attendance.subject_id == subject_class.id,
+            Attendance.date_time >= start_of_day,
+            Attendance.date_time <= end_of_day
+        ).first()
+
+        is_present = bool(attendance_record)
+        attendance_time = attendance_record.date_time if attendance_record else None
+        status = 'Present' if is_present else 'Absent'
+
+        # Apply filters
+        if filter_subject and subject_class.Subject != filter_subject:
+            continue
+        if filter_status and status != filter_status:
+            continue
+
+        attendance_data.append({
+            'subject': subject_class.Subject,
+            'start_time': subject_class.Start_Time,
+            'end_time': subject_class.End_Time,
+            'attendance_taken': attendance_time,
+            'attendance_status': status
+        })
+
+    # Get unique subjects for the search dropdown
+    unique_subjects = [sub.Subject for sub in subjects_today]
+    unique_subjects = sorted(list(set(unique_subjects)))
+
+    return render_template(
+        'auth/dashboards/student/attendance/today_attendance.html',
+        attendance_data=attendance_data,
+        today=today,
+        subjects=unique_subjects,
+        filter_subject=filter_subject,
+        filter_status=filter_status
+    )
+
+#Route to view old attendance for student
+@app.route('/student/attendance/old_attendance', methods=['GET', 'POST'])
+@role_required('student')
+def old_attendance():
+    """Displays old attendance for the logged-in student with filtering."""
+    student = User.query.filter_by(username=session['username'], role='student').first()
+
+    if not student:
+        flash("Error: Student user not found.", "danger")
+        return redirect(url_for('student_dashboard'))
+
+    filter_subject = request.form.get('subject')
+    filter_date_str = request.form.get('attendance_date')
+    filter_status = request.form.get('status')
+
+    attendance_data = []
+    all_student_classes = SubjectsClasses.query.order_by(SubjectsClasses.Start_Time).all()
+
+    for sc in all_student_classes:
+        # Apply Subject Filter
+        if filter_subject and sc.Subject != filter_subject:
+            continue
+
+        # Apply Date Filter (based on Start Time)
+        if filter_date_str:
+            try:
+                filter_date = datetime.strptime(filter_date_str, '%Y-%m-%d').date()
+                if sc.Start_Time.date() != filter_date:
+                    continue
+            except ValueError:
+                flash('Invalid date format. Please use YYYY-MM-DD.', 'danger')
+                return render_template('auth/dashboards/student/attendance/old_attendance.html',
+                                       attendance_data=attendance_data,
+                                       subjects=get_unique_subjects(),
+                                       filter_subject=filter_subject,
+                                       filter_date=filter_date_str,
+                                       filter_status=filter_status)
+
+        # Check for attendance record
+        attendance_record = Attendance.query.filter_by(user_id=student.userid, subject_id=sc.id).first()
+
+        status = 'Present' if attendance_record else 'Absent'
+        attendance_taken = attendance_record.date_time if attendance_record else None
+
+        # Apply Status Filter
+        if filter_status and status != filter_status:
+            continue
+
+        attendance_data.append({
+            'subject': sc.Subject,
+            'start_time': sc.Start_Time,
+            'end_time': sc.End_Time,
+            'attendance_taken': attendance_taken,
+            'attendance_status': status
+        })
+
+    attendance_data.sort(key=lambda x: x['start_time'], reverse=True)
+
+    return render_template('auth/dashboards/student/attendance/old_attendance.html',
+                           attendance_data=attendance_data,
+                           subjects=get_unique_subjects(),
+                           filter_subject=filter_subject,
+                           filter_date=filter_date_str,
+                           filter_status=filter_status)
+
+def get_unique_subjects():
+    return sorted(list(set([sc.Subject for sc in SubjectsClasses.query.all()])))
 
 #########################################################################
 #Route to Edit profile for student

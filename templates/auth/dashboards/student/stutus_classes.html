@@ -26,7 +26,7 @@
                             <td>{{ subjects_classes.Subject }}</td>
                             <td>{{ subjects_classes.Start_Time.strftime("%d/%m/%Y %I:%M %p") }}</td>
                             <td>{{ subjects_classes.End_Time.strftime("%d/%m/%Y %I:%M %p") }}</td>
-                            <td><a href="{{ url_for('maintenance', class_id=subjects_classes.id) }}" class="button">Mark Attendance</a></td>
+                            <td><a href="{{ url_for('maintenance') }}" class="button">Mark Attendance</a></td>
                         </tr>
                     {% endfor %}
                 {% else %}

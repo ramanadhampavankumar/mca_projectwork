@@ -822,3 +822,38 @@ video {
 }
 
 
+/* Style the status select dropdown */
+#status {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 150px; /* Adjust width as needed */
+    font-size: 1em;
+    appearance: none; /* Remove default arrow for better custom styling */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="currentColor" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position-x: 100%;
+    background-position-y: 50%;
+    padding-right: 25px; /* Make space for the custom arrow */
+}
+
+#status:focus {
+    outline: none;
+    border-color: #007bff; /* Highlight on focus */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Add a subtle focus shadow */
+}
+
+/* Style the options within the dropdown (optional) */
+#status option {
+    padding: 8px;
+    font-size: 1em;
+}
+
+/* Optional: Style the label associated with the status dropdown */
+.filter-section label[for="status"] {
+    margin-bottom: 5px;
+    font-weight: bold;
+    display: block; /* Make the label take full width if needed */
+}
+
+

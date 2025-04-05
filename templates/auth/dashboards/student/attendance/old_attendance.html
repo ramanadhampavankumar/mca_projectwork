@@ -1,0 +1,231 @@
+{% extends 'base/base_student.html' %}
+{% block title %}Old Attendance{% endblock title %}
+
+{% block body %}
+<main class="student-attendance-main">
+    <h1>Old Attendance</h1><br/>
+
+    <section class="filter-section">
+        <form method="POST" id="form-sec" class="attendance-form">
+            <div class="form-group">
+                <label for="subject-search">Subject:</label>
+                <select name="subject" id="subject-search" class="select2">
+                    <option value="">-- Select Subject --</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject }}" {% if filter_subject == subject %}selected{% endif %}>{{ subject }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="attendance_date">Date (YYYY-MM-DD):</label>
+                <input type="date" name="attendance_date" id="attendance_date" value="{{ filter_date }}">
+            </div>
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select name="status" id="status">
+                    <option value="">-- Select Status --</option>
+                    <option value="Present" {% if filter_status == 'Present' %}selected{% endif %}>Present</option>
+                    <option value="Absent" {% if filter_status == 'Absent' %}selected{% endif %}>Absent</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="delete">Filter</button>
+                <a href="{{ url_for('old_attendance') }}" id="update" class="reset">Reset</a>
+            </div>
+        </form>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% if attendance_data %}
+    <div style="overflow-x: auto; max-width: 100%;">
+        <table class="attendance-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Attendance Taken</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in attendance_data %}
+                <tr>
+                    <td>{{ data.subject }}</td>
+                    <td>{{ data.start_time.strftime('%Y-%m-%d %I:%M %p') if data.start_time }}</td>
+                    <td>{{ data.end_time.strftime('%Y-%m-%d %I:%M %p') if data.end_time }}</td>
+                    <td>{{ data.attendance_taken.strftime('%Y-%m-%d %I:%M %p') if data.attendance_taken }}</td>
+                    <td class="{{ 'present' if data.attendance_status == 'Present' else 'absent' }}">{{ data.attendance_status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No attendance data found based on the applied filters.</p>
+    {% endif %}
+</main>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            placeholder: "-- Select Subject --",
+            allowClear: true
+        });
+    });
+</script>
+{% endblock body %}
+
+<style>
+    /* Add your CSS here, keeping it consistent with your existing styles */
+    .student-attendance-main {
+        padding: 20px;
+    }
+
+    .student-attendance-main h1 {
+        margin-bottom: 20px;
+    }
+
+    .filter-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    .attendance-form {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .form-group {
+        flex-grow: 1;
+        max-width: 200px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .form-actions button,
+    .form-actions a {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        color: white;
+    }
+
+    .form-actions .delete {
+        background-color: #dc3545;
+    }
+
+    .form-actions .delete:hover {
+        background-color: #c82333;
+    }
+
+    .form-actions .reset {
+        background-color: #007bff;
+    }
+
+    .form-actions .reset:hover {
+        background-color: #0056b3;
+    }
+
+    .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        border: 1px solid #dee2e6;
+    }
+
+    .attendance-table th,
+    .attendance-table td {
+        padding: 10px;
+        border: 1px solid #dee2e6;
+        text-align: left;
+    }
+
+    .attendance-table thead th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    .attendance-table tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .attendance-table tbody td.present {
+        color: green;
+        font-weight: bold;
+    }
+
+    .attendance-table tbody td.absent {
+        color: red;
+        font-weight: bold;
+    }
+
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 6px 12px;
+        height: auto;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 26px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 24px;
+    }
+
+    /* Adjust max-width for form elements if needed for responsiveness */
+    @media (max-width: 768px) {
+        .attendance-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .form-group {
+            max-width: none;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
