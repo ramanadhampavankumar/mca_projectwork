@@ -1,10 +1,18 @@
-from flask import Flask, render_template, Response, redirect, url_for, session, request, flash, get_flashed_messages
+from flask import Flask, render_template, Response, redirect, url_for, session, request, flash, get_flashed_messages, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
 from datetime import datetime, date, time
 import pytz
 from sqlalchemy.orm import joinedload
+import cv2
+import os
+import numpy as np
+import joblib
+import base64
+import io
+from PIL import Image
+from sklearn.neighbors import KNeighborsClassifier
 
 #########################################################################################################################
 app = Flask(__name__) # initializing
@@ -72,9 +80,54 @@ def role_required(roles):
         return wrapper
     return decorator
 
+# Saving Date today in 2 different formats
+datetoday = date.today().strftime("%m_%d_%y")
+datetoday2 = date.today().strftime("%d-%B-%Y")
 today_date = date.today().strftime('%Y-%m-%d')
 today_start = datetime.combine(date.today(), time.min)
 today_end = datetime.combine(date.today(), time.max)
+
+
+nimgs = 10
+
+
+# Ensure required directories exist
+os.makedirs('static/faces', exist_ok=True)
+
+# Haar Cascade face detector (single initialization)
+face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+
+# Get total registered users
+def totalreg():
+    return len([name for name in os.listdir('static/faces') if os.path.isdir(os.path.join('static/faces', name))])
+
+def extract_attendance():
+    names, rolls, times, l = [], [], [], 0
+
+    records = db.session.query(Attendance, User).join(User, Attendance.user_id == User.userid).all()
+
+    for attendance, user in records:
+        names.append(user.username)  # or user.name if you have a name field
+        rolls.append(user.userid)    # or user.roll_number if it exists
+        times.append(attendance.date_time.strftime('%Y-%m-%d %H:%M:%S'))
+        l += 1
+
+    return names, rolls, times, l
+
+
+
+# Get today's formatted date
+def datetoday2():
+    return date.today().strftime('%B %d, %Y')
+
+
+
+def extract_faces(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = face_detector.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5, minSize=(20, 20))
+    return faces
+
 
 #########################################################################################################################
 #routes
@@ -337,66 +390,162 @@ def update_class(role, id):
 
 
 #########################################################################
-@app.route('/admin/edit_profiles', methods=['GET'])
-@role_required('admin')
-def edit_profiles():
-    users = User.query.all()
-    return render_template('auth/dashboards/admin/edit_profiles.html', users=users)
-
-#Route for delete user for admin
-@app.route('/admin/delete_user/<string:user_id>', methods=['POST'])
-@role_required('admin')
-def delete_user(user_id):
-    user = User.query.filter_by(userid=user_id).first()
-
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        flash('User deleted successfully!', 'success')
-    else:
-        flash('User not found.', 'danger')
-
-    return redirect(url_for('edit_profiles'))
-
-#########################################################################
-# Route for update profiles for admin
-@app.route('/admin/update_profile/<string:user_id>', methods=['GET', 'POST'])
-@role_required('admin')
-def update_profile(user_id):
-    user = User.query.filter_by(userid=user_id).first_or_404()
-
-    if request.method == 'POST':
-        user.userid = request.form['userid']
-        user.username = request.form['username']
-        new_password = request.form.get('new_password')
-
-        if new_password:
-            user.set_password(new_password)  # Hash and update password
-
-        try:
-            db.session.commit()
-            flash("User updated successfully!", "success")
-        except Exception as e:
-            flash(f"Error updating user: {e}", "danger")
-
-        return redirect(url_for('edit_profiles'))  # Redirect back to edit profiles
-
-    return render_template('auth/dashboards/admin/update_profile.html', user=user)
-
-#########################################################################
 # Route to take attendance for admin and teacher
 @app.route('/<role>/take_attendance')
 @role_required(['admin', 'teacher'])
 def take_attendance(role):
     return render_template(f'auth/dashboards/{role}/attendance/take_attendance.html')
 
-#Route to take live attendance for admin and teacher
-@app.route('/<role>/take_attendance/take_live_stream')
+# Live webcam stream page with filters
+@app.route('/<role>/take_attendance/take_live_stream', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])
 def take_live_stream(role):
-    return render_template(f'auth/dashboards/{role}/attendance/take_live_stream.html')
+    branches = [row.Branch for row in SubjectsClasses.query.with_entities(SubjectsClasses.Branch).distinct().all()]
+    subjects = []
+    selected_branch = request.args.get('branch')
+    selected_subject = request.args.get('subject')
+
+    if selected_branch:
+        subjects = [row.Subject for row in SubjectsClasses.query.filter_by(Branch=selected_branch).with_entities(SubjectsClasses.Subject).distinct().all()]
+
+    return render_template(
+        f'auth/dashboards/{role}/attendance/take_live_stream.html',
+        datetoday2=datetoday2,
+        mess=None,
+        branches=branches,
+        subjects=subjects,
+        selected_branch=selected_branch,
+        selected_subject=selected_subject
+    )
+
+
+@app.route('/get_subject_id')
+def get_subject_id():
+    subject_name = request.args.get('subject')
+    if subject_name:
+        subject = SubjectsClasses.query.filter_by(Subject=subject_name).first()
+        if subject:
+            return jsonify({'subject_id': subject.id})
+    return jsonify({'subject_id': None})
+
+
+# Add attendance record
+def add_attendance(name, subject_id=None):
+    try:
+        username, userid = name.split('_')[0], name.split('_')[1]
+
+        if subject_id is None:
+            existing_attendance = Attendance.query.filter_by(
+                user_id=userid
+            ).filter(
+                Attendance.date_time >= today_start,
+                Attendance.date_time <= today_end
+            ).first()
+            if not existing_attendance:
+                new_attendance = Attendance(user_id=userid, date_time=datetime.now())
+                db.session.add(new_attendance)
+                db.session.commit()
+                print(f"✅ Attendance marked for {username} ({userid})")
+            else:
+                print(f"🟡 Already marked attendance for {username} ({userid}) today.")
+        else:
+            existing_attendance = Attendance.query.filter_by(
+                user_id=userid,
+                subject_id=subject_id
+            ).filter(
+                Attendance.date_time >= today_start,
+                Attendance.date_time <= today_end
+            ).first()
+            if not existing_attendance:
+                new_attendance = Attendance(user_id=userid, subject_id=subject_id, date_time=datetime.now())
+                db.session.add(new_attendance)
+                db.session.commit()
+                print(f"✅ Attendance marked for {username} ({userid}) for subject {subject_id}")
+            else:
+                print(f"🟡 Already marked attendance for {username} ({userid}) for subject {subject_id} today.")
+    except Exception as e:
+        print(f"❌ Error in marking attendance: {e}")
+
+# Start endpoint for live attendance
+@app.route('/start', methods=['POST'])
+def start():
+    model_path = 'static/face_recognition_model.pkl'
+    if not os.path.exists(model_path):
+        return jsonify({'message': 'No trained model found. Please add a face to begin.'}), 400
+
+    try:
+        data = request.get_json()
+        if 'image' not in data or not data['image']:
+            return jsonify({'message': 'No image data received'}), 400
+        image_data = data['image'].split(',')[1]
+        image_bytes = base64.b64decode(image_data)
+        image = Image.open(io.BytesIO(image_bytes))
+        frame = np.array(image)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        faces = extract_faces(frame)
+        if len(faces) > 0:  # Explicitly check if at least one face is detected
+            for (x, y, w, h) in faces:
+                face = cv2.resize(frame[y:y + h, x:x + w], (50, 50))
+                try:
+                    person = identify_face(face.reshape(1, -1))[0]
+                    add_attendance(person)
+                    return jsonify({'message': f'✅ Attendance marked for {person}'})
+                except Exception as e:
+                    print(f"Error identifying face: {e}")
+            return jsonify({'message': 'Face detected but could not be identified.'}), 400
+        else:
+            return jsonify({'message': '❌ No face detected'}), 400
+    except Exception as e:
+        print(f"Error processing image: {e}")
+        return jsonify({'message': f'⚠️ Error: {str(e)}'}), 500
+
+
+# Start endpoint for live attendance with subject filter
+@app.route('/start/<int:subject_id>', methods=['POST'])
+def start_attendance_for_subject(subject_id):
+    model_path = 'static/face_recognition_model.pkl'
+    if not os.path.exists(model_path):
+        return jsonify({'message': 'No trained model found. Please add a face to begin.'}), 400
+
+    try:
+        data = request.get_json()
+        if 'image' not in data or not data['image']:
+            return jsonify({'message': 'No image data received'}), 400
+        image_data = data['image'].split(',')[1]
+        image_bytes = base64.b64decode(image_data)
+        image = Image.open(io.BytesIO(image_bytes))
+        frame = np.array(image)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        faces = extract_faces(frame)
+        if len(faces) > 0:
+            for (x, y, w, h) in faces:
+                face = cv2.resize(frame[y:y + h, x:x + w], (50, 50))
+                try:
+                    person = identify_face(face.reshape(1, -1))[0]
+                    add_attendance(person, subject_id=subject_id)
+                    return jsonify({'message': f'✅ Attendance marked for {person} for subject {subject_id}'})
+                except Exception as e:
+                    print(f"Error identifying face: {e}")
+            return jsonify({'message': 'Face detected but could not be identified.'}), 400
+        else:
+            return jsonify({'message': '❌ No face detected'}), 400
+    except Exception as e:
+        print(f"Error processing image: {e}")
+        return jsonify({'message': f'⚠️ Error: {str(e)}'}), 500
     
 
+
+# Identify face using trained model
+def identify_face(face_array):
+    model_path = 'static/face_recognition_model.pkl'
+    if not os.path.exists(model_path):
+        raise FileNotFoundError("Model file not found.")
+    model = joblib.load(model_path)
+    return model.predict(face_array)
+
+#########################################################################
 #Route to take manually attendance for admin and teacher
 @app.route('/<role>/take_attendance/take_manually', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])
@@ -453,19 +602,96 @@ def take_manually(role):
 
     return render_template(f'auth/dashboards/{role}/attendance/take_manually.html', classes=classes, students=students, role=role)
 
+
+
+#########################################################################
 #Route to Add user images for admin and teacher
+# Add face images page
 @app.route('/<role>/take_attendance/add_user_images')
 @role_required(['admin', 'teacher'])
 def add_user_images(role):
-    return render_template(f'auth/dashboards/{role}/attendance/add_user_images.html')
+    users = User.query.all()
+    return render_template(f'auth/dashboards/{role}/attendance/add_user_images.html', users=users)
 
+
+
+# Save user images and retrain model
+@app.route('/add', methods=['POST'])
+def save_user_images():
+    data = request.get_json()
+    newusername = data['newusername']
+    newuserid = data['newuserid']
+    images_data = data['images']
+
+    userimagefolder = f'static/faces/{newusername}_{newuserid}'
+    os.makedirs(userimagefolder, exist_ok=True)
+
+    count = 0
+    for i, image_data in enumerate(images_data):
+        try:
+            image_bytes = base64.b64decode(image_data.split(',')[1])
+            image = Image.open(io.BytesIO(image_bytes))
+            frame = np.array(image)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            faces = extract_faces(frame)
+
+            for (x, y, w, h) in faces:
+                face_img = frame[y:y + h, x:x + w]
+                filename = f'{newusername}_{count}.jpg'
+                cv2.imwrite(os.path.join(userimagefolder, filename), face_img)
+                count += 1
+        except Exception as e:
+            print(f"Error processing image {i}: {e}")
+
+    if count == 0:
+        return jsonify({'message': 'No faces detected in any of the provided images.'}), 400
+
+    train_model()
+    return jsonify({'message': f'{count} face images saved for user {newusername}. Model trained successfully!'})
+
+
+# Train KNN model with face images
+def train_model():
+    faces = []
+    labels = []
+    face_dir = 'static/faces'
+    for user in os.listdir(face_dir):
+        user_path = os.path.join(face_dir, user)
+        if not os.path.isdir(user_path):
+            continue
+        for imgname in os.listdir(user_path):
+            img_path = os.path.join(user_path, imgname)
+            img = cv2.imread(img_path)
+            if img is None:
+                continue
+            resized = cv2.resize(img, (50, 50))
+            faces.append(resized.ravel())
+            labels.append(user)
+
+    if faces:
+        knn = KNeighborsClassifier(n_neighbors=5)
+        knn.fit(np.array(faces), labels)
+        joblib.dump(knn, 'static/face_recognition_model.pkl')
+        print("✅ Model trained and saved.")
+    else:
+        print("⚠️ No face data to train the model.")
+
+
+# Manual model training route
+@app.route('/train', methods=['GET'])
+def trigger_training():
+    try:
+        train_model()
+        return jsonify({'status': 'success', 'message': 'Model trained successfully'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 #########################################################################
 #Route for view attendance for admin and teacher
 @app.route('/<role>/view_attendance')
 @role_required(['admin', 'teacher'])
 def view_attendance(role):
     return render_template(f'auth/dashboards/{role}/attendance/view_attendance.html')
-
+#########################################################################
 #Route to today attendance report for admin and teacher
 @app.route('/<role>/view_attendance/today_attendance_all', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])
@@ -533,7 +759,7 @@ def today_attendance_all(role):
         filter_subject=filter_subject,
         role=role  # Pass the 'role' variable to the template context
     )
-
+#########################################################################
 # Route to view attendance (Admin and Teacher) - Database Time (No Timezone Conversion)
 @app.route('/<role>/view_attendance/old_attendance_all', methods=['GET', 'POST'])
 @role_required(['admin', 'teacher'])
@@ -621,6 +847,8 @@ def old_attendance_all(role):
                            students=students, subjects_classes=subjects_classes,
                            attendance_data=filtered_attendance_data, role=role)
 
+#########################################################################
+#Route to delete attendance for admin and teacher
 @app.route('/<role>/delete_attendance/<int:attendance_id>', methods=['POST'])
 @role_required(['admin', 'teacher'])
 def delete_attendance(role, attendance_id):
@@ -640,6 +868,57 @@ def delete_attendance(role, attendance_id):
         flash('Cannot delete past attendance records through this action.', 'warning')
 
     return redirect(url_for('old_attendance_all', role=role))
+
+
+
+#########################################################################
+@app.route('/admin/edit_profiles', methods=['GET'])
+@role_required('admin')
+def edit_profiles():
+    users = User.query.all()
+    return render_template('auth/dashboards/admin/edit_profiles.html', users=users)
+#########################################################################################################################
+#Route for delete user for admin
+@app.route('/admin/delete_user/<string:user_id>', methods=['POST'])
+@role_required('admin')
+def delete_user(user_id):
+    user = User.query.filter_by(userid=user_id).first()
+
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash('User deleted successfully!', 'success')
+    else:
+        flash('User not found.', 'danger')
+
+    return redirect(url_for('edit_profiles'))
+
+#########################################################################
+# Route for update profiles for admin
+@app.route('/admin/update_profile/<string:user_id>', methods=['GET', 'POST'])
+@role_required('admin')
+def update_profile(user_id):
+    user = User.query.filter_by(userid=user_id).first_or_404()
+
+    if request.method == 'POST':
+        user.userid = request.form['userid']
+        user.username = request.form['username']
+        new_password = request.form.get('new_password')
+
+        if new_password:
+            user.set_password(new_password)  # Hash and update password
+
+        try:
+            db.session.commit()
+            flash("User updated successfully!", "success")
+        except Exception as e:
+            flash(f"Error updating user: {e}", "danger")
+
+        return redirect(url_for('edit_profiles'))  # Redirect back to edit profiles
+
+    return render_template('auth/dashboards/admin/update_profile.html', user=user)
+
+
 
 #########################################################################################################################
 #route for teacher dashboard

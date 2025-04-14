@@ -1,45 +1,121 @@
 {% extends 'base/base_teacher.html' %}
-{% block title %}Take Attendance{% endblock title %} 
+
+{% block title %}Take Live Attendance{% endblock title %}
+
 {% block body %}
 <main>
-<div  style="overflow-x: auto; max-width: 100%;">
-    <div>
-        <h1>Face Recognition Based Attendance System</h1>
-        <h4>{{ datetoday2 }}</h4>
-    </div>
-    
-    {% if mess %}
-    <p class="message">{{ mess }}</p>
-    {% endif %}
+    <div style="overflow-x: auto; max-width: 100%; padding: 20px;">
+        <div>
+            <h1>Face Recognition Based Attendance System</h1>
+            <h4>{{ datetoday2() }}</h4>
+        </div>
 
-    <div class="video-container">
-        <video id="video" autoplay></video>
+        {% if mess %}
+        <p class="message" style="color: red; font-weight: bold;">{{ mess }}</p>
+        {% endif %}
+
+        <form method="GET" action="{{ url_for('take_live_stream', role='teacher') }}" style="margin-bottom: 20px;">
+            <label for="branch">Branch:</label>
+            <select name="branch" id="branch" onchange="this.form.submit()">
+                <option value="">Select Branch</option>
+                {% for branch in branches %}
+                <option value="{{ branch }}" {% if selected_branch == branch %}selected{% endif %}>{{ branch }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="subject" style="margin-left: 10px;">Subject:</label>
+            <select name="subject" id="subject">
+                <option value="">Select Subject</option>
+                {% for subject in subjects %}
+                <option value="{{ subject }}" {% if selected_subject == subject %}selected{% endif %}>{{ subject }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" style="display: none;">Filter</button>
+        </form>
+
+        <div class="video-container" style="margin: 20px 0;">
+            <video id="video" autoplay muted playsinline style="border: 2px solid #ccc; border-radius: 8px;" width="320" height="240"></video>
+        </div>
+
+        <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
+
+        <div style="margin-top: 10px;">
+            <button onclick="captureAttendance()" class="button_a" id="take-attendance-btn" {% if not selected_branch or not selected_subject %}disabled{% endif %}>Take Attendance for Selected Subject</button>
+            <a href="{{ url_for('take_manually', role='teacher') }}" class="button_a" style="margin-left: 10px;">Take Manually</a>
+        </div>
     </div>
-    <canvas id="canvas" width="320" height="240"></canvas>
-    <button onclick="captureAttendance()" class="button_a">Take Attendance</button>
-    <a href="{{ url_for('take_manually', role='admin') }}" class="button_a">Take Manually</a>
-</div> 
 </main>
 
 <script>
-    let video = document.getElementById('video');
-    let canvas = document.getElementById('canvas');
-    let context = canvas.getContext('2d');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const button = document.getElementById('take-attendance-btn');
+    const branchSelect = document.getElementById('branch');
+    const subjectSelect = document.getElementById('subject');
 
+    // Start webcam stream
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-        .then(stream => video.srcObject = stream)
-        .catch(error => alert('Unable to access webcam. Check permissions.'));
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(error => {
+            alert('❌ Unable to access webcam. Please check camera permissions.');
+            console.error(error);
+        });
 
     function captureAttendance() {
-        context.drawImage(video, 0, 0, 320, 240);
-        fetch('/start', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: canvas.toDataURL("image/jpeg") })
-        })
-        .then(response => response.json())
-        .then(data => { alert(data.message); location.reload(); })
-        .catch(console.error);
+        button.disabled = true;
+        button.innerText = 'Processing...';
+
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL("image/jpeg");
+        const selectedSubject = subjectSelect.value;
+
+        // Find the ID of the selected subject
+        fetch('/get_subject_id?subject=' + selectedSubject) // You'll need to create this route
+            .then(response => response.json())
+            .then(data => {
+                const subjectId = data.subject_id;
+                if (subjectId) {
+                    fetch('/start/' + subjectId, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: imageData })
+                    })
+                    .then(response => response.json())
+                    .then(responseData => {
+                        alert(responseData.message);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert("⚠️ Something went wrong while taking attendance.");
+                    })
+                    .finally(() => {
+                        button.disabled = false;
+                        button.innerText = 'Take Attendance for Selected Subject';
+                    });
+                } else {
+                    alert("⚠️ Selected subject not found.");
+                    button.disabled = false;
+                    button.innerText = 'Take Attendance for Selected Subject';
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching subject ID:", error);
+                alert("⚠️ Error fetching subject information.");
+                button.disabled = false;
+                button.innerText = 'Take Attendance for Selected Subject';
+            });
     }
+
+    subjectSelect.addEventListener('change', function() {
+        if (branchSelect.value && this.value) {
+            button.disabled = false;
+        } else {
+            button.disabled = true;
+        }
+    });
 </script>
 {% endblock %}

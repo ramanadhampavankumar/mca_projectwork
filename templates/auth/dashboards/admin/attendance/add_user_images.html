@@ -1,45 +1,93 @@
 {% extends 'base/base_admin.html' %}
-{% block title %}Take Attendance{% endblock title %} 
-{% block body %}
-<main>
-<div  style="overflow-x: auto; max-width: 100%;">
-    <div>
-        <h1>Add User Images</h1>
-        <h4>{{ datetoday2 }}</h4>
-    </div>
-    
-    {% if mess %}
-    <p class="message">{{ mess }}</p>
-    {% endif %}
 
-    <div class="video-container">
-        <video id="video" autoplay></video>
+{% block title %}Add User Face Images{% endblock %}
+
+{% block body %}
+<main style="padding: 20px;">
+    <h2>Add User Face Images</h2>
+
+    <div style="margin-top: 20px;">
+        <label for="userSelect">Select User:</label>
+        <select id="userSelect" style="width: 100%; padding: 8px;">
+            <option value="">-- Select a user --</option>
+            {% for user in users %}
+                <option value="{{ user.username }}_{{ user.userid }}">{{ user.username }} (ID: {{ user.userid }})</option>
+            {% endfor %}
+        </select>
     </div>
-    <canvas id="canvas" width="320" height="240"></canvas>
-    <button onclick="captureAttendance()" class="button_a">Add User Images</button>
-    <a href="{{ url_for('maintenance') }}" class="button_a">Add Manually</a>
-</div> 
+
+    <div style="margin-top: 20px;">
+        <video id="video" autoplay style="width: 320px; height: 240px; border: 2px solid #ccc; border-radius: 8px;"></video>
+        <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
+    </div>
+
+    <div style="margin-top: 10px;">
+        <button onclick="captureImage()" class="button_a">Capture Image</button>
+        <button onclick="submitImages()" class="button_a" style="margin-left: 10px;">Submit & Train</button>
+    </div>
+
+    <div id="preview" style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px;"></div>
 </main>
 
 <script>
-    let video = document.getElementById('video');
-    let canvas = document.getElementById('canvas');
-    let context = canvas.getContext('2d');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+    const preview = document.getElementById('preview');
+    let capturedImages = [];
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    // Start webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => video.srcObject = stream)
-        .catch(error => alert('Unable to access webcam. Check permissions.'));
+        .catch(err => alert('Camera access denied or unavailable.'));
 
-    function captureAttendance() {
-        context.drawImage(video, 0, 0, 320, 240);
-        fetch('/start', {
+    function captureImage() {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/jpeg");
+        capturedImages.push(dataUrl);
+
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.width = 80;
+        img.height = 60;
+        img.style.border = "1px solid #ccc";
+        img.style.borderRadius = "4px";
+        preview.appendChild(img);
+    }
+
+    function submitImages() {
+        const selected = document.getElementById('userSelect').value;
+        if (!selected) {
+            alert("Please select a user.");
+            return;
+        }
+
+        if (capturedImages.length === 0) {
+            alert("Please capture at least one image.");
+            return;
+        }
+
+        const [username, userid] = selected.split('_');
+
+        fetch('/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: canvas.toDataURL("image/jpeg") })
+            body: JSON.stringify({
+                newusername: username,
+                newuserid: userid,
+                images: capturedImages
+            })
         })
-        .then(response => response.json())
-        .then(data => { alert(data.message); location.reload(); })
-        .catch(console.error);
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            capturedImages = [];
+            preview.innerHTML = '';
+        })
+        .catch(err => {
+            console.error(err);
+            alert("An error occurred while saving the images.");
+        });
     }
 </script>
 {% endblock %}
