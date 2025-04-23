@@ -5,6 +5,7 @@
 - [Project Work Authorization Letter](#Project-Work-Authorization-Letter)
 - [Project Work Abstract](#Project-Work-Abstract)
 - [Project Work Details](#Project-Work-Details)
+- [Project Work Documents](#Project-Work-Documents)
 - [Installation and Usage](#installation-and-usage)
 
 ## Project Work Authorization Letter
@@ -16,6 +17,8 @@ Here's the link of the [Google Drive](https://drive.google.com/file/d/13PvJ9AFaR
 ## Project Work Details
 Here's the link of the [Google Drive](https://drive.google.com/file/d/132uNy38l3mPNO-4T6-55AgsOfNdhi-Xg/view?usp=sharing)
 
+## Project Work Documents
+Here's the link of the [Google Drive](https://drive.google.com/drive/folders/11zeYS3gM_f5eFOJgIRcMqRWtZtreQ3y7?usp=drive_link)
 
 ### Installation and Usage
 1. Clone the repository:
