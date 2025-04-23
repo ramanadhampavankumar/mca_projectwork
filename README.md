@@ -18,7 +18,7 @@ Here's the link of the [Google Drive](https://drive.google.com/file/d/13PvJ9AFaR
 Here's the link of the [Google Drive](https://drive.google.com/file/d/132uNy38l3mPNO-4T6-55AgsOfNdhi-Xg/view?usp=sharing)
 
 ## Project Work Documents
-Here's the link of the [Google Drive](https://drive.google.com/drive/folders/11zeYS3gM_f5eFOJgIRcMqRWtZtreQ3y7?usp=drive_link)
+Here's the link of the [Google Drive](https://drive.google.com/drive/folders/1UC6t4KgEn18r3SsVyasY49dbghV8JkPR?usp=drive_link)
 
 ### Installation and Usage
 1. Clone the repository:
