@@ -10,7 +10,7 @@
 Here's the link of the [Google Drive](https://drive.google.com/drive/folders/1UC6t4KgEn18r3SsVyasY49dbghV8JkPR?usp=drive_link)
 
 ### Installation and Usage
-<h3>Installation</h3>
+#### Installation
 1. Clone the repository:
     ```
     git clone https://github.com/ramanadhampavankumar/mca_projectwork.git
@@ -33,7 +33,7 @@ Here's the link of the [Google Drive](https://drive.google.com/drive/folders/1UC
     ```
     python app.py
     ```
-<h3>Usage</h3>
+### Usage
 1. Login Credentials for admin:
     username and password is
     ```
