@@ -2,25 +2,15 @@
 “Face Recognition-Based Attendance System - Flask App - With GUI” with “Artificial Intelligence & Machine Learning”
 
 ## Table of Contents
-- [Project Work Authorization Letter](#Project-Work-Authorization-Letter)
-- [Project Work Abstract](#Project-Work-Abstract)
-- [Project Work Details](#Project-Work-Details)
 - [Project Work Documents](#Project-Work-Documents)
 - [Installation and Usage](#installation-and-usage)
 
-## Project Work Authorization Letter
-Here's the link of the [Google Drive](https://drive.google.com/file/d/12fPDiX10xjuTx-9eoNViuuKO9a2pyTt7/view?usp=sharing)
-
-## Project Work Abstract
-Here's the link of the [Google Drive](https://drive.google.com/file/d/13PvJ9AFaR_gTBsIjIP15NwnVMrZ6LEj2/view?usp=sharing)
-
-## Project Work Details
-Here's the link of the [Google Drive](https://drive.google.com/file/d/132uNy38l3mPNO-4T6-55AgsOfNdhi-Xg/view?usp=sharing)
 
 ## Project Work Documents
 Here's the link of the [Google Drive](https://drive.google.com/drive/folders/1UC6t4KgEn18r3SsVyasY49dbghV8JkPR?usp=drive_link)
 
 ### Installation and Usage
+Installation
 1. Clone the repository:
     ```
     git clone https://github.com/ramanadhampavankumar/mca_projectwork.git
@@ -42,4 +32,28 @@ Here's the link of the [Google Drive](https://drive.google.com/drive/folders/1UC
 5. Run the `app.py` file.
     ```
     python app.py
+    ```
+<p>Usage</p>
+1. Login Credentials for admin:
+    username and password is
+    ```
+    admin
+    ```
+
+2. Login Credentials for teacher:
+    username and password is
+    ```
+    teacher
+    ```
+
+3. Login Credentials for student:
+    username and password is
+    ```
+    student
+    ```
+
+4. Login Credentials for testing user:
+    username and password is
+    ```
+    testing1
     ```
