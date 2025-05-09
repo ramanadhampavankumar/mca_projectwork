@@ -1,13 +1,17 @@
 ## This is my final year MCA Project Work
 “Face Recognition-Based Attendance System - Flask App - With GUI” with “Artificial Intelligence & Machine Learning”
 
+<hr/>
 ## Table of Contents
 - [Project Work Documents](#Project-Work-Documents)
 - [Installation and Usage](#installation-and-usage)
 
+<hr/>
 
 ### Project Work Documents
 Here's the link of the [Google Drive](https://drive.google.com/drive/folders/1UC6t4KgEn18r3SsVyasY49dbghV8JkPR?usp=drive_link)
+
+<hr/>
 
 ### Installation and Usage
 #### Installation
