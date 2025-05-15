@@ -1,0 +1,81 @@
+
+mca_projectwork/
+│   mca_projectwork/
+│   ├── .git
+│   ├── instance/
+│   │   └── users.db
+│   ├── static/
+│   │   ├── assets/
+│   │   │   ├── images/
+│   │   │   │   ├── icons/
+│   │   │   │   │   └── website_maintenance.png
+│   │   │   │   └── logo/
+│   │   │   │       ├── 1.jpg
+│   │   │   │       ├── attendance-system-high-resolution-logo-transparent.png
+│   │   │   │       ├── attendance-system-high-resolution-logo-transparent.webp
+│   │   │   │       ├── attendance-system-high-resolution-logo.png
+│   │   │   │       └── attendance-system-sm.jpg
+│   │   ├── faces/
+│   │   ├── javascript/
+│   │   │   │── script.js
+│   │   │   ├── index.css
+│   │   │   ├── index.css
+│   │   │   └── styles.css
+|   |   └── haarcascade_frontalface_default.xml
+│   ├── templates/
+│   │   ├── contact.html
+│   │   ├── index.html
+│   │   ├── maintenance.html
+│   │   ├── today_classes.html
+│   │   ├── auth/
+│   │   │   ├── dashboards/
+│   │   │   │   ├── login.html
+│   │   │   │   ├── register.html
+│   │   │   │   ├── admin/
+│   │   │   │   │   ├── admin_dashboard.html
+│   │   │   │   │   ├── edit_profiles.html
+│   │   │   │   │   ├── manage_classes.html
+│   │   │   │   │   ├── manage_roles.html
+│   │   │   │   │   ├── update_class.html
+│   │   │   │   │   ├── update_profile.html
+│   │   │   │   │   └── attendance/
+│   │   │   │   │       ├── add_user_images.html
+│   │   │   │   │       ├── camera.html
+│   │   │   │   │       ├── old_attendance_all.html
+│   │   │   │   │       ├── take_attendance.html
+│   │   │   │   │       ├── take_live_stream.html
+│   │   │   │   │       ├── take_manually.html
+│   │   │   │   │       ├── today_attendance_all.html
+│   │   │   │   │       └── view_attendance.html
+│   │   │   │   ├── student/
+│   │   │   │   │   ├── profile.html
+│   │   │   │   │   ├── student_dashboard.html
+│   │   │   │   │   ├── stutus_classes.html
+│   │   │   │   │   └── attendance/
+│   │   │   │   │       ├── old_attendance.html
+│   │   │   │   │       ├── today_attendance.html
+│   │   │   │   │       └── view_attendance_report.html
+│   │   │   │   └── teacher/
+│   │   │   │       ├── manage_classes.html
+│   │   │   │       ├── profile.html
+│   │   │   │       ├── teacher_dashboard.html
+│   │   │   │       ├── update_class.html
+│   │   │   │       ├── view_users.html
+│   │   │   │       └── attendance/
+│   │   │   │           ├── add_user_images.html
+│   │   │   │           ├── camera.html
+│   │   │   │           ├── old_attendance_all.html
+│   │   │   │           ├── take_attendance.html
+│   │   │   │           ├── take_live_stream.html
+│   │   │   │           ├── take_manually.html
+│   │   │   │           ├── today_attendance_all.html
+│   │   │   │           └── view_attendance.html
+│   │   │   └── base/
+│   │   │       ├── base.html
+│   │   │       ├── base_admin.html
+│   │   │       ├── base_student.html
+│   │   │       └── base_teacher.html
+│   │── app.py
+│   │── haarcascade_frontalface_default.xml
+│   │── README.md
+│   │── requirements.txt
